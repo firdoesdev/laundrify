@@ -6,19 +6,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Eye, Edit3, Trash2, MoreVertical, Filter, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Eye, Edit3, Trash2, MoreVertical, Filter, ArrowUpDown, ArrowUp, ArrowDown, Weight, SparklesIcon } from 'lucide-react';
 import type { Order, OrderStatus } from '@/types';
 import { format } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 interface OrderTableProps {
   orders: Order[];
-}
-
-// Helper function to apply conditional class names
-function cn(...classes: string[]) {
-  return classes.filter(Boolean).join(' ');
 }
 
 export function OrderTable({ orders: initialOrders }: OrderTableProps) {
@@ -39,23 +35,27 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
     let sortableItems = [...orders];
     if (sortConfig !== null && sortConfig.key !== null) {
       sortableItems.sort((a, b) => {
-        // Ensure a[sortConfig.key] and b[sortConfig.key] are not undefined
         const valA = a[sortConfig.key!];
         const valB = b[sortConfig.key!];
 
         if (valA === undefined || valB === undefined) return 0;
-
+        
         if (typeof valA === 'number' && typeof valB === 'number') {
             return sortConfig.direction === 'ascending' ? valA - valB : valB - valA;
         }
         if (typeof valA === 'string' && typeof valB === 'string') {
             return sortConfig.direction === 'ascending' ? valA.localeCompare(valB) : valB.localeCompare(valA);
         }
+        if (valA instanceof Date && valB instanceof Date) {
+          return sortConfig.direction === 'ascending' ? valA.getTime() - valB.getTime() : valB.getTime() - valA.getTime();
+        }
         // Fallback for other types or mixed types (e.g. dates as strings)
-        if (String(valA) < String(valB)) {
+        const stringA = String(valA);
+        const stringB = String(valB);
+        if (stringA < stringB) {
           return sortConfig.direction === 'ascending' ? -1 : 1;
         }
-        if (String(valA) > String(valB)) {
+        if (stringA > stringB) {
           return sortConfig.direction === 'ascending' ? 1 : -1;
         }
         return 0;
@@ -119,34 +119,28 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead onClick={() => handleSort('id')} className="cursor-pointer">
-                <div className="flex items-center">
-                  Order ID {getSortIcon('id')}
-                </div>
+                <div className="flex items-center">Order ID {getSortIcon('id')}</div>
               </TableHead>
               <TableHead onClick={() => handleSort('customerName')} className="cursor-pointer">
-                <div className="flex items-center">
-                  Customer {getSortIcon('customerName')}
-                </div>
+                <div className="flex items-center">Customer {getSortIcon('customerName')}</div>
               </TableHead>
-              <TableHead onClick={() => handleSort('serviceType')} className="cursor-pointer">
-                 <div className="flex items-center">
-                  Service {getSortIcon('serviceType')}
-                </div>
+              <TableHead onClick={() => handleSort('serviceType')} className="cursor-pointer hidden sm:table-cell">
+                 <div className="flex items-center">Service {getSortIcon('serviceType')}</div>
+              </TableHead>
+              <TableHead onClick={() => handleSort('weightInKg')} className="cursor-pointer hidden md:table-cell">
+                 <div className="flex items-center">Weight (kg) {getSortIcon('weightInKg')}</div>
+              </TableHead>
+              <TableHead onClick={() => handleSort('perfume')} className="cursor-pointer hidden lg:table-cell">
+                 <div className="flex items-center">Perfume {getSortIcon('perfume')}</div>
               </TableHead>
               <TableHead onClick={() => handleSort('status')} className="cursor-pointer">
-                <div className="flex items-center">
-                  Status {getSortIcon('status')}
-                </div>
+                <div className="flex items-center">Status {getSortIcon('status')}</div>
               </TableHead>
-              <TableHead onClick={() => handleSort('orderDate')} className="cursor-pointer hidden md:table-cell">
-                <div className="flex items-center">
-                  Order Date {getSortIcon('orderDate')}
-                </div>
+              <TableHead onClick={() => handleSort('orderDate')} className="cursor-pointer hidden lg:table-cell">
+                <div className="flex items-center">Order Date {getSortIcon('orderDate')}</div>
               </TableHead>
               <TableHead onClick={() => handleSort('totalAmount')} className="cursor-pointer text-right">
-                <div className="flex items-center justify-end">
-                  Amount {getSortIcon('totalAmount')}
-                </div>
+                <div className="flex items-center justify-end">Amount {getSortIcon('totalAmount')}</div>
               </TableHead>
               <TableHead className="text-center">Actions</TableHead>
             </TableRow>
@@ -159,12 +153,18 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
                     <Link href={`/orders/${order.id}`} className="hover:underline">{order.id}</Link>
                   </TableCell>
                   <TableCell>{order.customerName}</TableCell>
-                  <TableCell>{order.serviceType}</TableCell>
+                  <TableCell className="hidden sm:table-cell">{order.serviceType}</TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {order.weightInKg ? `${order.weightInKg.toLocaleString('id-ID')} kg` : '-'}
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell">
+                    {order.perfume || '-'}
+                  </TableCell>
                   <TableCell>
                     <Badge 
                       variant={order.status === 'Completed' ? 'default' : order.status === 'Pending' ? 'secondary' : 'outline'}
                       className={cn(
-                        'text-xs',
+                        'text-xs whitespace-nowrap',
                         order.status === 'Completed' && 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200',
                         order.status === 'Processing' && 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200',
                         order.status === 'Pending' && 'bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200',
@@ -174,10 +174,10 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
                       {order.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {format(new Date(order.orderDate), 'PP')}
+                  <TableCell className="hidden lg:table-cell">
+                    {format(new Date(order.orderDate), 'PP', { locale: cn() === 'id' ? require('date-fns/locale/id') : undefined })}
                   </TableCell>
-                  <TableCell className="text-right">{'Rp ' + order.totalAmount.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</TableCell>
+                  <TableCell className="text-right">{'Rp ' + order.totalAmount.toLocaleString('id-ID')}</TableCell>
                   <TableCell className="text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -207,7 +207,7 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
                   No orders found.
                 </TableCell>
               </TableRow>

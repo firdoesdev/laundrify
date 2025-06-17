@@ -8,7 +8,7 @@ import type { Metric, Order } from '@/types';
 import { sampleOrders } from '@/lib/data';
 import Link from 'next/link';
 import Image from 'next/image';
-import { cn } from '@/lib/utils'; // Import the global cn utility
+import { cn } from '@/lib/utils';
 
 const metrics: Metric[] = [
   { title: 'Total Revenue', value: 'Rp 12.345.000', icon: DollarSign, change: '+5.2%', changeType: 'positive' },
@@ -34,7 +34,11 @@ export default function DashboardPage() {
             <CardContent>
               <div className="text-3xl font-bold text-foreground">{metric.value}</div>
               {metric.change && (
-                <p className={`text-xs mt-1 flex items-center ${metric.changeType === 'positive' ? 'text-green-600' : 'text-red-600'}`}>
+                <p className={cn(
+                    "text-xs mt-1 flex items-center",
+                    metric.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
+                  )}
+                >
                   {metric.changeType === 'positive' ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
                   {metric.change} vs last month
                 </p>
@@ -72,16 +76,17 @@ export default function DashboardPage() {
                         <Badge 
                           variant={order.status === 'Completed' ? 'default' : order.status === 'Pending' ? 'secondary' : 'outline'}
                           className={cn(
-                            order.status === 'Completed' && 'bg-green-100 text-green-700 border-green-300',
-                            order.status === 'Processing' && 'bg-blue-100 text-blue-700 border-blue-300',
-                            order.status === 'Pending' && 'bg-yellow-100 text-yellow-700 border-yellow-300',
-                            order.status === 'Cancelled' && 'bg-red-100 text-red-700 border-red-300'
+                            'text-xs whitespace-nowrap',
+                            order.status === 'Completed' && 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200',
+                            order.status === 'Processing' && 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200',
+                            order.status === 'Pending' && 'bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200',
+                            order.status === 'Cancelled' && 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200'
                           )}
                         >
                           {order.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">{'Rp ' + order.totalAmount.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</TableCell>
+                      <TableCell className="text-right">{'Rp ' + order.totalAmount.toLocaleString('id-ID')}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -92,8 +97,8 @@ export default function DashboardPage() {
                 <p>No recent orders found.</p>
               </div>
             )}
-            <Button variant="outline" className="mt-4 w-full">
-              <Link href="/orders">View All Orders</Link>
+            <Button variant="outline" className="mt-4 w-full shadow-sm hover:shadow-md transition-shadow">
+              <Link href="/orders" className="w-full text-center">View All Orders</Link>
             </Button>
           </CardContent>
         </Card>
@@ -104,17 +109,17 @@ export default function DashboardPage() {
             <CardDescription>Get started with common tasks.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <Button asChild size="lg" className="w-full justify-start">
+            <Button asChild size="lg" className="w-full justify-start shadow-md hover:shadow-lg transition-shadow">
               <Link href="/orders/create">
                 <Package className="mr-2 h-5 w-5" /> Create New Order
               </Link>
             </Button>
-            <Button asChild variant="secondary" size="lg" className="w-full justify-start">
+            <Button asChild variant="secondary" size="lg" className="w-full justify-start shadow-sm hover:shadow-md transition-shadow">
               <Link href="/customers/add">
                 <Users className="mr-2 h-5 w-5" /> Add New Customer
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="w-full justify-start">
+            <Button asChild variant="outline" size="lg" className="w-full justify-start shadow-sm hover:shadow-md transition-shadow">
               <Link href="/reports">
                 <Activity className="mr-2 h-5 w-5" /> View Reports
               </Link>
@@ -124,7 +129,7 @@ export default function DashboardPage() {
               alt="Laundry service illustration" 
               width={600} 
               height={300} 
-              className="rounded-md mt-4"
+              className="rounded-md mt-4 shadow-md"
               data-ai-hint="laundry service" 
             />
           </CardContent>

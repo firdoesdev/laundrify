@@ -1,6 +1,13 @@
 import type { Order, Customer, Review } from '@/types';
 import { format } from 'date-fns';
 
+// PRICE_PER_KG will now be managed via localStorage and settings page.
+// A default can be used in the order form if not set.
+export const DEFAULT_PRICE_PER_KG = 15000; // Default price if not set in localStorage
+
+export const PERFUME_OPTIONS = ["Ocean Fresh", "Lavender Bliss", "Spring Dew", "Citrus Burst", "Unscented"];
+
+
 export const sampleOrders: Order[] = [
   {
     id: 'ORD001',
@@ -10,11 +17,13 @@ export const sampleOrders: Order[] = [
     status: 'Completed',
     orderDate: format(new Date(2023, 10, 15), 'yyyy-MM-dd'),
     dueDate: format(new Date(2023, 10, 17), 'yyyy-MM-dd'),
-    totalAmount: 25.50,
+    totalAmount: 25500, // Example, might not match weight * price if old data
     items: [
-      { name: 'Shirts', quantity: 5, price: 2.50 },
-      { name: 'Pants', quantity: 3, price: 3.00 },
+      { name: 'Shirts', quantity: 5, price: 2500 },
+      { name: 'Pants', quantity: 3, price: 3000 },
     ],
+    weightInKg: 1.7, // Example weight
+    perfume: PERFUME_OPTIONS[0], // Example perfume
   },
   {
     id: 'ORD002',
@@ -24,11 +33,13 @@ export const sampleOrders: Order[] = [
     status: 'Processing',
     orderDate: format(new Date(2023, 11, 1), 'yyyy-MM-dd'),
     dueDate: format(new Date(2023, 11, 5), 'yyyy-MM-dd'),
-    totalAmount: 45.00,
+    totalAmount: 45000,
     items: [
-      { name: 'Suit', quantity: 1, price: 20.00 },
-      { name: 'Dress', quantity: 1, price: 15.00 },
+      { name: 'Suit', quantity: 1, price: 20000 },
+      { name: 'Dress', quantity: 1, price: 15000 },
     ],
+    weightInKg: 3.0, // Example weight
+    perfume: PERFUME_OPTIONS[1],
   },
   {
     id: 'ORD003',
@@ -37,11 +48,13 @@ export const sampleOrders: Order[] = [
     serviceType: 'Wash & Iron',
     status: 'Pending',
     orderDate: format(new Date(), 'yyyy-MM-dd'),
-    totalAmount: 30.75,
+    totalAmount: 30750,
     items: [
-      { name: 'Bed Sheets', quantity: 2, price: 10.00 },
-      { name: 'Towels', quantity: 5, price: 1.50 },
+      { name: 'Bed Sheets', quantity: 2, price: 10000 },
+      { name: 'Towels', quantity: 5, price: 1500 },
     ],
+    weightInKg: 2.05, // Example weight
+    perfume: PERFUME_OPTIONS[2],
   },
     {
     id: 'ORD004',
@@ -50,8 +63,10 @@ export const sampleOrders: Order[] = [
     serviceType: 'Wash & Fold',
     status: 'Completed',
     orderDate: format(new Date(2023, 9, 20), 'yyyy-MM-dd'),
-    totalAmount: 18.00,
-    items: [{ name: 'T-shirts', quantity: 10, price: 1.80 }],
+    totalAmount: 18000,
+    items: [{ name: 'T-shirts', quantity: 10, price: 1800 }],
+    weightInKg: 1.2,
+    perfume: PERFUME_OPTIONS[0],
   },
   {
     id: 'ORD005',
@@ -60,8 +75,10 @@ export const sampleOrders: Order[] = [
     serviceType: 'Dry Cleaning',
     status: 'Cancelled',
     orderDate: format(new Date(2023, 11, 3), 'yyyy-MM-dd'),
-    totalAmount: 55.00,
-    items: [{ name: 'Coat', quantity: 1, price: 25.00 }, { name: 'Scarf', quantity: 2, price: 5.00 }],
+    totalAmount: 55000,
+    items: [{ name: 'Coat', quantity: 1, price: 25000 }, { name: 'Scarf', quantity: 2, price: 5000 }],
+    weightInKg: 2.0, // Example, dry cleaning might not be weight based traditionally
+    perfume: PERFUME_OPTIONS[3],
   },
 ];
 
@@ -75,6 +92,7 @@ export const sampleCustomers: Customer[] = [
     joinDate: format(new Date(2022, 0, 10), 'yyyy-MM-dd'),
     totalOrders: 5,
     lastOrderDate: format(new Date(2023, 10, 15), 'yyyy-MM-dd'),
+    avatarUrl: 'https://placehold.co/40x40.png',
   },
   {
     id: 'CUST002',
@@ -85,6 +103,7 @@ export const sampleCustomers: Customer[] = [
     joinDate: format(new Date(2022, 3, 22), 'yyyy-MM-dd'),
     totalOrders: 12,
     lastOrderDate: format(new Date(2023, 11, 1), 'yyyy-MM-dd'),
+    avatarUrl: 'https://placehold.co/40x40.png',
   },
   {
     id: 'CUST003',
@@ -95,6 +114,7 @@ export const sampleCustomers: Customer[] = [
     joinDate: format(new Date(2023, 5, 1), 'yyyy-MM-dd'),
     totalOrders: 2,
     lastOrderDate: format(new Date(), 'yyyy-MM-dd'),
+    avatarUrl: 'https://placehold.co/40x40.png',
   },
     {
     id: 'CUST004',
@@ -105,6 +125,7 @@ export const sampleCustomers: Customer[] = [
     joinDate: format(new Date(2021, 8, 15), 'yyyy-MM-dd'),
     totalOrders: 8,
     lastOrderDate: format(new Date(2023, 9, 20), 'yyyy-MM-dd'),
+    avatarUrl: 'https://placehold.co/40x40.png',
   },
   {
     id: 'CUST005',
@@ -115,6 +136,7 @@ export const sampleCustomers: Customer[] = [
     joinDate: format(new Date(2023, 1, 5), 'yyyy-MM-dd'),
     totalOrders: 3,
     lastOrderDate: format(new Date(2023, 11, 3), 'yyyy-MM-dd'),
+    avatarUrl: 'https://placehold.co/40x40.png',
   },
 ];
 
