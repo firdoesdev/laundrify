@@ -57,16 +57,13 @@ export function AppSidebar() {
             <SidebarMenuItem key={item.href}>
               <Link href={item.href}>
                 <SidebarMenuButton
-                  asChild
                   isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
                   tooltip={item.label}
                   onClick={() => setOpenMobile(false)}
                   className="justify-start"
                 >
-                  <>
-                    <item.icon className="h-5 w-5" />
-                    <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
-                  </>
+                  <item.icon className="h-5 w-5" />
+                  <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -76,11 +73,9 @@ export function AppSidebar() {
        <Separator className="my-2 bg-sidebar-border group-data-[collapsible=icon]:hidden" />
       <SidebarFooter className="p-4 mt-auto group-data-[collapsible=icon]:p-2">
         <Link href="/settings">
-            <SidebarMenuButton asChild tooltip="Settings" className="justify-start" onClick={() => setOpenMobile(false)}>
-              <>
-                <Settings className="h-5 w-5" />
-                <span className="group-data-[collapsible=icon]:hidden">Settings</span>
-              </>
+            <SidebarMenuButton tooltip="Settings" className="justify-start" onClick={() => setOpenMobile(false)}>
+              <Settings className="h-5 w-5" />
+              <span className="group-data-[collapsible=icon]:hidden">Settings</span>
             </SidebarMenuButton>
         </Link>
       </SidebarFooter>
