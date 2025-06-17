@@ -10,7 +10,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 const metrics: Metric[] = [
-  { title: 'Total Revenue', value: '$12,345', icon: DollarSign, change: '+5.2%', changeType: 'positive' },
+  { title: 'Total Revenue', value: 'Rp 12.345', icon: DollarSign, change: '+5.2%', changeType: 'positive' },
   { title: 'Completed Orders', value: '215', icon: CheckCircle, change: '+10', changeType: 'positive' },
   { title: 'Pending Tasks', value: '12', icon: ListChecks, change: '-2', changeType: 'negative' },
   { title: 'Active Customers', value: '87', icon: Users, change: '+3 New', changeType: 'positive' },
@@ -80,7 +80,7 @@ export default function DashboardPage() {
                           {order.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">${order.totalAmount.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">{'Rp ' + order.totalAmount.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

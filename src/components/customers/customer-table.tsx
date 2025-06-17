@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Edit3, Trash2, MoreVertical, Mail, Phone, ArrowUpDown } from 'lucide-react';
+import { User, Edit3, Trash2, MoreVertical, Mail, Phone, ArrowUpDown, MapPin } from 'lucide-react';
 import type { Customer } from '@/types';
 import { format } from 'date-fns';
 import { Input } from '@/components/ui/input';
@@ -124,6 +124,11 @@ export function CustomerTable({ customers: initialCustomers }: CustomerTableProp
                       {customer.email && (
                         <span className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Mail className="h-3 w-3" /> {customer.email}
+                        </span>
+                      )}
+                      {customer.address && (
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                          <MapPin className="h-3 w-3 text-muted-foreground" /> {customer.address}
                         </span>
                       )}
                     </div>

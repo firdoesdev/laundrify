@@ -155,7 +155,7 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
                   <TableCell className="hidden md:table-cell">
                     {format(new Date(order.orderDate), 'PP')}
                   </TableCell>
-                  <TableCell className="text-right">${order.totalAmount.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">{'Rp ' + order.totalAmount.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                   <TableCell className="text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -204,4 +204,3 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
     </div>
   );
 }
-
