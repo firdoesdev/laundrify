@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { id as dateFnsLocaleId } from 'date-fns/locale';
-import Link from 'next/link'; // Added import
+import Link from 'next/link'; 
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,12 +21,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from '@/hooks/use-toast';
 import type { Order, Customer } from '@/types';
 import { DEFAULT_PRICE_PER_KG, PERFUME_OPTIONS, sampleOrders, sampleCustomers } from '@/lib/data';
-import { CalendarIcon, PlusCircle, User, Tag, Weight, Sparkles, Info, DollarSign, Loader2, Users } from 'lucide-react';
+import { CalendarIcon, PlusCircle, User, Tag, Weight, Sparkles, Info, DollarSign, Loader2, Users, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const orderFormSchema = z.object({
   customerId: z.string().min(1, { message: "Please select a customer." }),
-  customerName: z.string(), // Will be auto-filled, not directly part of user input in form
+  customerName: z.string(), 
   serviceType: z.string().min(3, { message: "Service type must be at least 3 characters." }),
   weightInKg: z.coerce.number().min(0.1, { message: "Weight must be at least 0.1 kg." }),
   perfume: z.string({ required_error: "Please select a perfume." }),
@@ -50,7 +50,6 @@ export default function CreateOrderPage() {
     if (storedPrice) {
       setPricePerKg(parseFloat(storedPrice));
     }
-    // In a real app, fetch customers from API. For now, use sampleCustomers.
     setCustomers(sampleCustomers);
   }, []);
 
@@ -90,7 +89,7 @@ export default function CreateOrderPage() {
     setIsLoading(true);
     const newOrder: Order = {
       id: `ORD-${Date.now()}`,
-      customerName: data.customerName, // Already set by useEffect or remains from default
+      customerName: data.customerName, 
       customerId: data.customerId,
       serviceType: data.serviceType,
       weightInKg: data.weightInKg,
@@ -101,7 +100,7 @@ export default function CreateOrderPage() {
       totalAmount: calculatedTotal,
     };
 
-    sampleOrders.unshift(newOrder); // Add to the beginning of the global array
+    sampleOrders.unshift(newOrder); 
 
     toast({
       title: 'Order Created Successfully!',
@@ -109,14 +108,16 @@ export default function CreateOrderPage() {
     });
     setIsLoading(false);
     router.push('/orders');
-    router.refresh(); // To attempt to reload data on the target page
+    router.refresh(); 
   };
 
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight text-foreground font-headline">Create New Laundry Order</h1>
-        <Button variant="outline" onClick={() => router.back()}>Back to Orders</Button>
+        <Button variant="outline" onClick={() => router.back()} asChild>
+          <Link href="/orders"><ArrowLeft className="mr-2 h-4 w-4" />Back to Orders</Link>
+        </Button>
       </div>
 
       <Form {...form}>
@@ -162,19 +163,6 @@ export default function CreateOrderPage() {
                   </FormItem>
                 )}
               />
-               <FormField
-                control={form.control}
-                name="customerName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Customer Name (Auto-filled)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Customer name appears here" {...field} className="h-11 bg-muted" readOnly />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="serviceType"
@@ -192,7 +180,7 @@ export default function CreateOrderPage() {
                 control={form.control}
                 name="dueDate"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem className="flex flex-col md:col-span-2">
                     <FormLabel>Due Date (Optional)</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>

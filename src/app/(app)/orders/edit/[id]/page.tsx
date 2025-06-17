@@ -32,7 +32,7 @@ const orderFormSchema = z.object({
   perfume: z.string({ required_error: "Please select a perfume." }),
   status: z.enum(['Pending', 'Processing', 'Completed', 'Cancelled'], { required_error: "Please select a status." }),
   dueDate: z.date().optional(),
-  orderDate: z.date({ required_error: "Order date is required."}), // Keep as date object for picker
+  orderDate: z.date({ required_error: "Order date is required."}), 
 });
 
 type OrderFormValues = z.infer<typeof orderFormSchema>;
@@ -83,7 +83,7 @@ export default function EditOrderPage() {
           dueDate: foundOrder.dueDate ? parseISO(foundOrder.dueDate) : undefined,
           orderDate: foundOrder.orderDate ? parseISO(foundOrder.orderDate) : new Date(),
         });
-        setCalculatedTotal(foundOrder.totalAmount); // Initialize with existing total
+        setCalculatedTotal(foundOrder.totalAmount); 
       }
       setIsFetchingOrder(false);
     }
@@ -105,7 +105,7 @@ export default function EditOrderPage() {
   useEffect(() => {
     if (typeof weightInKgValue === 'number' && pricePerKg > 0) {
       setCalculatedTotal(weightInKgValue * pricePerKg);
-    } else if (originalOrder) { // Fallback to original total if weight is 0/invalid during edit
+    } else if (originalOrder) { 
       setCalculatedTotal(originalOrder.totalAmount);
     } else {
       setCalculatedTotal(0);
@@ -118,16 +118,16 @@ export default function EditOrderPage() {
 
     if (orderIndex > -1) {
       const updatedOrder: Order = {
-        ...sampleOrders[orderIndex], // Preserve original fields not in form
+        ...sampleOrders[orderIndex], 
         customerId: data.customerId,
         customerName: data.customerName,
         serviceType: data.serviceType,
         weightInKg: data.weightInKg,
         perfume: data.perfume,
         status: data.status,
-        orderDate: format(data.orderDate, 'yyyy-MM-dd'), // Format date back to string
+        orderDate: format(data.orderDate, 'yyyy-MM-dd'), 
         dueDate: data.dueDate ? format(data.dueDate, 'yyyy-MM-dd') : undefined,
-        totalAmount: calculatedTotal, // Use the newly calculated total
+        totalAmount: calculatedTotal, 
       };
       sampleOrders[orderIndex] = updatedOrder;
 
@@ -136,7 +136,7 @@ export default function EditOrderPage() {
         description: `Order ID: ${updatedOrder.id} has been updated.`,
       });
       setIsLoading(false);
-      router.push(`/orders/${orderId}`); // Redirect to detail page
+      router.push(`/orders/${orderId}`); 
       router.refresh();
     } else {
       toast({
@@ -201,7 +201,7 @@ export default function EditOrderPage() {
                         }
                       }} 
                       defaultValue={field.value}
-                      value={field.value} // Ensure value is controlled
+                      value={field.value} 
                     >
                       <FormControl>
                         <SelectTrigger className="h-11">
@@ -216,19 +216,6 @@ export default function EditOrderPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="customerName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Customer Name (Auto-filled)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Customer name appears here" {...field} className="h-11 bg-muted" readOnly />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
