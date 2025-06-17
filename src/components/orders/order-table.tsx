@@ -1,17 +1,21 @@
 
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Eye, Edit3, Trash2, MoreVertical, Filter, ArrowUpDown, ArrowUp, ArrowDown, Weight, SparklesIcon } from 'lucide-react';
+import { Eye, Edit3, Trash2, MoreVertical, Filter, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import type { Order, OrderStatus } from '@/types';
 import { format } from 'date-fns';
+import { id as dateFnsLocaleId } from 'date-fns/locale';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import { sampleOrders } from '@/lib/data'; // Import to modify global array on delete
 
 interface OrderTableProps {
   orders: Order[];
@@ -22,6 +26,12 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Order | null; direction: 'ascending' | 'descending' } | null>(null);
+  const router = useRouter();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    setOrders(initialOrders);
+  }, [initialOrders]);
 
   const handleSort = (key: keyof Order) => {
     let direction: 'ascending' | 'descending' = 'ascending';
@@ -46,10 +56,13 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
         if (typeof valA === 'string' && typeof valB === 'string') {
             return sortConfig.direction === 'ascending' ? valA.localeCompare(valB) : valB.localeCompare(valA);
         }
-        if (valA instanceof Date && valB instanceof Date) {
-          return sortConfig.direction === 'ascending' ? valA.getTime() - valB.getTime() : valB.getTime() - valA.getTime();
+        // Dates are stored as strings, so direct comparison works after ensuring they are actual dates
+        if (sortConfig.key === 'orderDate' || sortConfig.key === 'dueDate') {
+          const dateA = new Date(valA as string).getTime();
+          const dateB = new Date(valB as string).getTime();
+          return sortConfig.direction === 'ascending' ? dateA - dateB : dateB - dateA;
         }
-        // Fallback for other types or mixed types (e.g. dates as strings)
+        
         const stringA = String(valA);
         const stringB = String(valB);
         if (stringA < stringB) {
@@ -73,9 +86,21 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
   });
 
   const handleDeleteOrder = (orderId: string) => {
-    // Placeholder for delete functionality
-    console.log(`Delete order: ${orderId}`);
-    setOrders(orders.filter(order => order.id !== orderId));
+    // Update local state for immediate UI feedback
+    const updatedOrders = orders.filter(order => order.id !== orderId);
+    setOrders(updatedOrders);
+
+    // Update global sampleOrders array
+    const index = sampleOrders.findIndex(order => order.id === orderId);
+    if (index > -1) {
+      sampleOrders.splice(index, 1);
+    }
+    
+    toast({
+      title: 'Order Deleted',
+      description: `Order ${orderId} has been deleted.`,
+    });
+    router.refresh(); // Optionally refresh to ensure data consistency if other components rely on sampleOrders
   };
 
   const getSortIcon = (key: keyof Order) => {
@@ -175,7 +200,7 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
                     </Badge>
                   </TableCell>
                   <TableCell className="hidden lg:table-cell">
-                    {format(new Date(order.orderDate), 'PP', { locale: cn() === 'id' ? require('date-fns/locale/id') : undefined })}
+                    {format(new Date(order.orderDate), 'PP', { locale: dateFnsLocaleId })}
                   </TableCell>
                   <TableCell className="text-right">{'Rp ' + order.totalAmount.toLocaleString('id-ID')}</TableCell>
                   <TableCell className="text-center">
@@ -188,16 +213,16 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/orders/${order.id}`} className="flex items-center">
+                          <Link href={`/orders/${order.id}`} className="flex items-center w-full">
                             <Eye className="mr-2 h-4 w-4" /> View Details
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href={`/orders/edit/${order.id}`} className="flex items-center">
+                          <Link href={`/orders/edit/${order.id}`} className="flex items-center w-full">
                             <Edit3 className="mr-2 h-4 w-4" /> Edit Order
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDeleteOrder(order.id)} className="text-destructive focus:text-destructive-foreground focus:bg-destructive flex items-center">
+                        <DropdownMenuItem onClick={() => handleDeleteOrder(order.id)} className="text-destructive focus:text-destructive-foreground focus:bg-destructive flex items-center w-full">
                           <Trash2 className="mr-2 h-4 w-4" /> Delete Order
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -216,11 +241,11 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
         </Table>
       </div>
       <div className="flex justify-between items-center text-sm text-muted-foreground">
-        <span>Showing {filteredOrders.length} of {orders.length} orders</span>
+        <span>Showing {filteredOrders.length} of {orders.length} total orders in current view</span>
         {/* Basic pagination placeholder */}
         <div className="flex gap-1">
           <Button variant="outline" size="sm" disabled>Previous</Button>
-          <Button variant="outline" size="sm">Next</Button>
+          <Button variant="outline" size="sm" disabled>Next</Button>
         </div>
       </div>
     </div>

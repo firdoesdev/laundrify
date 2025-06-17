@@ -9,7 +9,7 @@ import {
   BarChartBig,
   MessageSquareText,
   Settings,
-  ChevronDown,
+  DollarSign, // Added for Pricing Settings
   Package,
 } from 'lucide-react';
 import {
@@ -20,15 +20,9 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -36,6 +30,7 @@ const navItems = [
   { href: '/customers', label: 'Customers', icon: Users },
   { href: '/reports', label: 'Reports', icon: BarChartBig },
   { href: '/reviews', label: 'Reviews Analysis', icon: MessageSquareText },
+  { href: '/settings/pricing', label: 'Pricing Settings', icon: DollarSign }, // Added Pricing Settings
 ];
 
 export function AppSidebar() {
@@ -61,7 +56,9 @@ export function AppSidebar() {
                   tooltip={item.label}
                   onClick={() => setOpenMobile(false)}
                   className="justify-start"
+                  // asChild // Removed as Link is the parent interactive element
                 >
+                  {/* No React.Fragment needed here if SidebarMenuButton is not asChild */}
                   <item.icon className="h-5 w-5" />
                   <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                 </SidebarMenuButton>
@@ -73,7 +70,12 @@ export function AppSidebar() {
        <Separator className="my-2 bg-sidebar-border group-data-[collapsible=icon]:hidden" />
       <SidebarFooter className="p-4 mt-auto group-data-[collapsible=icon]:p-2">
         <Link href="/settings">
-            <SidebarMenuButton tooltip="Settings" className="justify-start" onClick={() => setOpenMobile(false)}>
+            <SidebarMenuButton 
+              tooltip="Settings" 
+              className="justify-start" 
+              onClick={() => setOpenMobile(false)}
+              // asChild // Removed
+            >
               <Settings className="h-5 w-5" />
               <span className="group-data-[collapsible=icon]:hidden">Settings</span>
             </SidebarMenuButton>
