@@ -6,9 +6,9 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, Trash2, Package, User, CalendarDays, Tag, Weight, Sparkles, DollarSign, AlertTriangle } from 'lucide-react';
-import { sampleOrders } from '@/lib/data';
-import type { Order } from '@/types';
+import { ArrowLeft, Edit, Trash2, Package, User, CalendarDays, Tag, Weight, Sparkles, DollarSign, AlertTriangle, PackageIcon } from 'lucide-react';
+import { sampleOrders, sampleServiceTypes } from '@/lib/data';
+import type { Order, ServiceType } from '@/types';
 import { format } from 'date-fns';
 import { id as dateFnsLocaleId } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
@@ -29,6 +29,7 @@ export default function OrderDetailPage() {
   const params = useParams();
   const { toast } = useToast();
   const [order, setOrder] = useState<Order | null>(null);
+  const [serviceTypeDetail, setServiceTypeDetail] = useState<ServiceType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const orderId = params.id as string;
@@ -38,6 +39,8 @@ export default function OrderDetailPage() {
       const foundOrder = sampleOrders.find(o => o.id === orderId);
       if (foundOrder) {
         setOrder(foundOrder);
+        const foundServiceType = sampleServiceTypes.find(st => st.name === foundOrder.serviceType);
+        setServiceTypeDetail(foundServiceType || null);
       }
       setIsLoading(false);
     }
@@ -53,7 +56,7 @@ export default function OrderDetailPage() {
         description: `Order ${order.id} has been successfully deleted.`,
       });
       router.push('/orders');
-      router.refresh(); 
+      router.refresh();
     } else {
       toast({
         title: 'Error Deleting Order',
@@ -121,7 +124,7 @@ export default function OrderDetailPage() {
               <p className="text-foreground text-base">{order.customerId}</p>
             </div>
           </div>
-           <div className="flex items-center">
+          <div className="flex items-center">
             <Package className="mr-3 h-5 w-5 text-muted-foreground" />
             <div>
               <p className="font-medium text-muted-foreground">Service Type</p>
@@ -144,7 +147,8 @@ export default function OrderDetailPage() {
               </div>
             </div>
           )}
-          {order.weightInKg !== undefined && (
+          
+          {serviceTypeDetail?.pricingModel === 'per_kg' && order.weightInKg !== undefined && (
             <div className="flex items-center">
               <Weight className="mr-3 h-5 w-5 text-muted-foreground" />
               <div>
@@ -153,7 +157,17 @@ export default function OrderDetailPage() {
               </div>
             </div>
           )}
-          {order.perfume && (
+          {serviceTypeDetail?.pricingModel === 'per_item' && order.quantity !== undefined && (
+            <div className="flex items-center">
+              <PackageIcon className="mr-3 h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="font-medium text-muted-foreground">Quantity</p>
+                <p className="text-foreground text-base">{order.quantity.toLocaleString('id-ID')} item(s)</p>
+              </div>
+            </div>
+          )}
+
+          {serviceTypeDetail?.pricingModel === 'per_kg' && order.perfume && (
             <div className="flex items-center">
               <Sparkles className="mr-3 h-5 w-5 text-muted-foreground" />
               <div>
@@ -162,6 +176,7 @@ export default function OrderDetailPage() {
               </div>
             </div>
           )}
+
           <div className="flex items-center md:col-span-2">
             <DollarSign className="mr-3 h-5 w-5 text-green-600" />
             <div>

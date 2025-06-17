@@ -6,11 +6,11 @@ import { useRouter } from 'next/navigation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Edit3, Trash2, MoreVertical, ArrowUpDown, ArrowUp, ArrowDown, ClipboardList } from 'lucide-react';
+import { Edit3, Trash2, MoreVertical, ArrowUpDown, ArrowUp, ArrowDown, ClipboardList, Weight, PackageIcon } from 'lucide-react';
 import type { ServiceType } from '@/types';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { sampleServiceTypes } from '@/lib/data'; 
+import { sampleServiceTypes } from '@/lib/data';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Badge } from '@/components/ui/badge';
 
 interface ServiceTypeTableProps {
   serviceTypes: ServiceType[];
@@ -54,11 +55,14 @@ export function ServiceTypeTable({ serviceTypes: initialServiceTypes }: ServiceT
         const valB = b[sortConfig.key!];
 
         if (valA === undefined || valB === undefined) return 0;
-        
-        if (typeof valA === 'string' && typeof valB === 'string') {
-           return sortConfig.direction === 'ascending' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+
+        if (typeof valA === 'number' && typeof valB === 'number') {
+          return sortConfig.direction === 'ascending' ? valA - valB : valB - valA;
         }
-        
+        if (typeof valA === 'string' && typeof valB === 'string') {
+          return sortConfig.direction === 'ascending' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        }
+
         const stringA = String(valA);
         const stringB = String(valB);
         if (stringA < stringB) {
@@ -87,14 +91,14 @@ export function ServiceTypeTable({ serviceTypes: initialServiceTypes }: ServiceT
     if (index > -1) {
       sampleServiceTypes.splice(index, 1);
     }
-    
+
     toast({
       title: 'Service Type Deleted',
       description: `Service Type "${serviceTypeName}" has been deleted.`,
     });
-    router.refresh(); 
+    router.refresh();
   };
-  
+
   const getSortIcon = (key: keyof ServiceType) => {
     if (!sortConfig || sortConfig.key !== key) {
       return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
@@ -117,14 +121,24 @@ export function ServiceTypeTable({ serviceTypes: initialServiceTypes }: ServiceT
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead onClick={() => handleSort('id')} className="cursor-pointer w-[200px]">
+              <TableHead onClick={() => handleSort('id')} className="cursor-pointer w-[150px]">
                 <div className="flex items-center">
                   ID {getSortIcon('id')}
                 </div>
               </TableHead>
               <TableHead onClick={() => handleSort('name')} className="cursor-pointer">
                 <div className="flex items-center">
-                  Service Type Name {getSortIcon('name')}
+                  Name {getSortIcon('name')}
+                </div>
+              </TableHead>
+              <TableHead onClick={() => handleSort('pricingModel')} className="cursor-pointer w-[180px]">
+                <div className="flex items-center">
+                  Pricing Model {getSortIcon('pricingModel')}
+                </div>
+              </TableHead>
+              <TableHead onClick={() => handleSort('price')} className="cursor-pointer w-[150px] text-right">
+                <div className="flex items-center justify-end">
+                  Price {getSortIcon('price')}
                 </div>
               </TableHead>
               <TableHead className="text-center w-[100px]">Actions</TableHead>
@@ -136,14 +150,25 @@ export function ServiceTypeTable({ serviceTypes: initialServiceTypes }: ServiceT
                 <TableRow key={st.id} className="hover:bg-muted/50 transition-colors">
                   <TableCell className="font-medium text-muted-foreground">{st.id}</TableCell>
                   <TableCell className="font-medium text-primary">
-                     {st.name}
+                    {st.name}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="capitalize">
+                      {st.pricingModel === 'per_kg' ? 
+                        <Weight className="mr-2 h-4 w-4"/> : 
+                        <PackageIcon className="mr-2 h-4 w-4" /> }
+                      {st.pricingModel.replace('_', ' ')}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {'Rp ' + st.price.toLocaleString('id-ID')}
                   </TableCell>
                   <TableCell className="text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <MoreVertical className="h-4 w-4" />
-                           <span className="sr-only">Service Type actions</span>
+                          <span className="sr-only">Service Type actions</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
@@ -154,15 +179,15 @@ export function ServiceTypeTable({ serviceTypes: initialServiceTypes }: ServiceT
                         </DropdownMenuItem>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                             <button className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-destructive focus:text-destructive-foreground focus:bg-destructive w-full">
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
-                             </button>
+                            <button className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-destructive focus:text-destructive-foreground focus:bg-destructive w-full">
+                              <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the service type 
+                                This action cannot be undone. This will permanently delete the service type
                                 <span className="font-semibold"> {st.name}</span>.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
@@ -180,8 +205,8 @@ export function ServiceTypeTable({ serviceTypes: initialServiceTypes }: ServiceT
                 </TableRow>
               ))
             ) : (
-               <TableRow>
-                <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                   No service types found.
                 </TableCell>
               </TableRow>
@@ -189,9 +214,8 @@ export function ServiceTypeTable({ serviceTypes: initialServiceTypes }: ServiceT
           </TableBody>
         </Table>
       </div>
-       <div className="flex justify-between items-center text-sm text-muted-foreground">
+      <div className="flex justify-between items-center text-sm text-muted-foreground">
         <span>Showing {filteredServiceTypes.length} of {serviceTypes.length} total service types.</span>
-        {/* Basic pagination placeholder */}
         <div className="flex gap-1">
           <Button variant="outline" size="sm" disabled>Previous</Button>
           <Button variant="outline" size="sm" disabled>Next</Button>

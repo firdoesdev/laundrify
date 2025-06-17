@@ -9,8 +9,7 @@ import {
   BarChartBig,
   MessageSquareText,
   Settings,
-  DollarSign,
-  ClipboardList, // Added for Service Types
+  ClipboardList, 
   Package,
 } from 'lucide-react';
 import {
@@ -29,10 +28,9 @@ const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/customers', label: 'Customers', icon: Users },
-  { href: '/service-types', label: 'Service Types', icon: ClipboardList }, // Added Service Types
+  { href: '/service-types', label: 'Service Types', icon: ClipboardList },
   { href: '/reports', label: 'Reports', icon: BarChartBig },
   { href: '/reviews', label: 'Reviews Analysis', icon: MessageSquareText },
-  { href: '/settings/pricing', label: 'Pricing Settings', icon: DollarSign },
 ];
 
 export function AppSidebar() {
@@ -74,6 +72,7 @@ export function AppSidebar() {
               tooltip="Settings" 
               className="justify-start" 
               onClick={() => setOpenMobile(false)}
+              isActive={pathname.startsWith('/settings')}
             >
               <Settings className="h-5 w-5" />
               <span className="group-data-[collapsible=icon]:hidden">Settings</span>

@@ -1,16 +1,15 @@
+
 import type { Order, Customer, Review, ServiceType } from '@/types';
 import { format } from 'date-fns';
-
-export const DEFAULT_PRICE_PER_KG = 15000; 
 
 export const PERFUME_OPTIONS = ["Ocean Fresh", "Lavender Bliss", "Spring Dew", "Citrus Burst", "Unscented"];
 
 export const sampleServiceTypes: ServiceType[] = [
-  { id: 'ST001', name: 'Regular Kilogram' },
-  { id: 'ST002', name: 'Express Kilogram (6 Hours)' },
-  { id: 'ST003', name: 'Bed Cover Cleaning' },
-  { id: 'ST004', name: 'Shoes Cleaning' },
-  { id: 'ST005', name: 'Ironing Only' },
+  { id: 'ST001', name: 'Regular Kilogram', pricingModel: 'per_kg', price: 7000 },
+  { id: 'ST002', name: 'Express Kilogram (6 Hours)', pricingModel: 'per_kg', price: 12000 },
+  { id: 'ST003', name: 'Bed Cover Cleaning', pricingModel: 'per_item', price: 25000 },
+  { id: 'ST004', name: 'Shoes Cleaning (Pair)', pricingModel: 'per_item', price: 50000 },
+  { id: 'ST005', name: 'Ironing Only (per Kg)', pricingModel: 'per_kg', price: 5000 },
 ];
 
 export const sampleOrders: Order[] = [
@@ -18,72 +17,56 @@ export const sampleOrders: Order[] = [
     id: 'ORD001',
     customerName: 'Alice Wonderland',
     customerId: 'CUST001',
-    serviceType: sampleServiceTypes[0].name, // 'Wash & Fold',
+    serviceType: sampleServiceTypes[0].name, // Regular Kilogram
     status: 'Completed',
     orderDate: format(new Date(2023, 10, 15), 'yyyy-MM-dd'),
     dueDate: format(new Date(2023, 10, 17), 'yyyy-MM-dd'),
-    totalAmount: 25500, 
-    items: [
-      { name: 'Shirts', quantity: 5, price: 2500 },
-      { name: 'Pants', quantity: 3, price: 3000 },
-    ],
-    weightInKg: 1.7, 
-    perfume: PERFUME_OPTIONS[0], 
+    weightInKg: 1.7,
+    perfume: PERFUME_OPTIONS[0],
+    totalAmount: 1.7 * 7000, // 11900
   },
   {
     id: 'ORD002',
     customerName: 'Bob The Builder',
     customerId: 'CUST002',
-    serviceType: sampleServiceTypes[1].name, // 'Dry Cleaning',
+    serviceType: sampleServiceTypes[2].name, // Bed Cover Cleaning
     status: 'Processing',
     orderDate: format(new Date(2023, 11, 1), 'yyyy-MM-dd'),
     dueDate: format(new Date(2023, 11, 5), 'yyyy-MM-dd'),
-    totalAmount: 45000,
-    items: [
-      { name: 'Suit', quantity: 1, price: 20000 },
-      { name: 'Dress', quantity: 1, price: 15000 },
-    ],
-    weightInKg: 3.0, 
-    perfume: PERFUME_OPTIONS[1],
+    quantity: 2, // 2 Bed Covers
+    totalAmount: 2 * 25000, // 50000
   },
   {
     id: 'ORD003',
     customerName: 'Charlie Brown',
     customerId: 'CUST003',
-    serviceType: sampleServiceTypes[2].name, // 'Wash & Iron',
+    serviceType: sampleServiceTypes[1].name, // Express Kilogram
     status: 'Pending',
     orderDate: format(new Date(), 'yyyy-MM-dd'),
-    totalAmount: 30750,
-    items: [
-      { name: 'Bed Sheets', quantity: 2, price: 10000 },
-      { name: 'Towels', quantity: 5, price: 1500 },
-    ],
-    weightInKg: 2.05, 
+    weightInKg: 2.05,
     perfume: PERFUME_OPTIONS[2],
+    totalAmount: 2.05 * 12000, // 24600
   },
     {
     id: 'ORD004',
     customerName: 'Diana Prince',
     customerId: 'CUST004',
-    serviceType: sampleServiceTypes[0].name, //'Wash & Fold',
+    serviceType: sampleServiceTypes[0].name, // Regular Kilogram
     status: 'Completed',
     orderDate: format(new Date(2023, 9, 20), 'yyyy-MM-dd'),
-    totalAmount: 18000,
-    items: [{ name: 'T-shirts', quantity: 10, price: 1800 }],
     weightInKg: 1.2,
     perfume: PERFUME_OPTIONS[0],
+    totalAmount: 1.2 * 7000, // 8400
   },
   {
     id: 'ORD005',
     customerName: 'Edward Scissorhands',
     customerId: 'CUST005',
-    serviceType: sampleServiceTypes[1].name, // 'Dry Cleaning',
+    serviceType: sampleServiceTypes[3].name, // Shoes Cleaning
     status: 'Cancelled',
     orderDate: format(new Date(2023, 11, 3), 'yyyy-MM-dd'),
-    totalAmount: 55000,
-    items: [{ name: 'Coat', quantity: 1, price: 25000 }, { name: 'Scarf', quantity: 2, price: 5000 }],
-    weightInKg: 2.0, 
-    perfume: PERFUME_OPTIONS[3],
+    quantity: 1, // 1 pair of shoes
+    totalAmount: 1 * 50000, // 50000
   },
 ];
 

@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { sampleOrders } from '@/lib/data'; // Import to modify global array on delete
+import { sampleOrders } from '@/lib/data'; 
 
 interface OrderTableProps {
   orders: Order[];
@@ -25,7 +25,7 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Order | null; direction: 'ascending' | 'descending' } | null>(null);
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Order | 'valueForCalculation' | null; direction: 'ascending' | 'descending' } | null>(null);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -33,7 +33,7 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
     setOrders(initialOrders);
   }, [initialOrders]);
 
-  const handleSort = (key: keyof Order) => {
+  const handleSort = (key: keyof Order | 'valueForCalculation') => {
     let direction: 'ascending' | 'descending' = 'ascending';
     if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
       direction = 'descending';
@@ -45,22 +45,28 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
     let sortableItems = [...orders];
     if (sortConfig !== null && sortConfig.key !== null) {
       sortableItems.sort((a, b) => {
-        const valA = a[sortConfig.key!];
-        const valB = b[sortConfig.key!];
+        let valA, valB;
 
+        if (sortConfig.key === 'valueForCalculation') {
+          valA = a.weightInKg ?? a.quantity ?? 0;
+          valB = b.weightInKg ?? b.quantity ?? 0;
+        } else {
+          valA = a[sortConfig.key as keyof Order];
+          valB = b[sortConfig.key as keyof Order];
+        }
+        
         if (valA === undefined || valB === undefined) return 0;
         
         if (typeof valA === 'number' && typeof valB === 'number') {
             return sortConfig.direction === 'ascending' ? valA - valB : valB - valA;
         }
         if (typeof valA === 'string' && typeof valB === 'string') {
+            if (sortConfig.key === 'orderDate' || sortConfig.key === 'dueDate') {
+              const dateA = new Date(valA as string).getTime();
+              const dateB = new Date(valB as string).getTime();
+              return sortConfig.direction === 'ascending' ? dateA - dateB : dateB - dateA;
+            }
             return sortConfig.direction === 'ascending' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-        }
-        // Dates are stored as strings, so direct comparison works after ensuring they are actual dates
-        if (sortConfig.key === 'orderDate' || sortConfig.key === 'dueDate') {
-          const dateA = new Date(valA as string).getTime();
-          const dateB = new Date(valB as string).getTime();
-          return sortConfig.direction === 'ascending' ? dateA - dateB : dateB - dateA;
         }
         
         const stringA = String(valA);
@@ -86,11 +92,9 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
   });
 
   const handleDeleteOrder = (orderId: string) => {
-    // Update local state for immediate UI feedback
     const updatedOrders = orders.filter(order => order.id !== orderId);
     setOrders(updatedOrders);
 
-    // Update global sampleOrders array
     const index = sampleOrders.findIndex(order => order.id === orderId);
     if (index > -1) {
       sampleOrders.splice(index, 1);
@@ -100,10 +104,10 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
       title: 'Order Deleted',
       description: `Order ${orderId} has been deleted.`,
     });
-    router.refresh(); // Optionally refresh to ensure data consistency if other components rely on sampleOrders
+    router.refresh(); 
   };
 
-  const getSortIcon = (key: keyof Order) => {
+  const getSortIcon = (key: keyof Order | 'valueForCalculation') => {
     if (!sortConfig || sortConfig.key !== key) {
       return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
     }
@@ -152,8 +156,8 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
               <TableHead onClick={() => handleSort('serviceType')} className="cursor-pointer hidden sm:table-cell">
                  <div className="flex items-center">Service {getSortIcon('serviceType')}</div>
               </TableHead>
-              <TableHead onClick={() => handleSort('weightInKg')} className="cursor-pointer hidden md:table-cell">
-                 <div className="flex items-center">Weight (kg) {getSortIcon('weightInKg')}</div>
+              <TableHead onClick={() => handleSort('valueForCalculation')} className="cursor-pointer hidden md:table-cell">
+                 <div className="flex items-center">Weight/Qty {getSortIcon('valueForCalculation')}</div>
               </TableHead>
               <TableHead onClick={() => handleSort('perfume')} className="cursor-pointer hidden lg:table-cell">
                  <div className="flex items-center">Perfume {getSortIcon('perfume')}</div>
@@ -180,7 +184,7 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
                   <TableCell>{order.customerName}</TableCell>
                   <TableCell className="hidden sm:table-cell">{order.serviceType}</TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {order.weightInKg ? `${order.weightInKg.toLocaleString('id-ID')} kg` : '-'}
+                    {order.weightInKg ? `${order.weightInKg.toLocaleString('id-ID')} kg` : order.quantity ? `${order.quantity.toLocaleString('id-ID')} item(s)`: '-'}
                   </TableCell>
                   <TableCell className="hidden lg:table-cell">
                     {order.perfume || '-'}
@@ -242,7 +246,6 @@ export function OrderTable({ orders: initialOrders }: OrderTableProps) {
       </div>
       <div className="flex justify-between items-center text-sm text-muted-foreground">
         <span>Showing {filteredOrders.length} of {orders.length} total orders in current view</span>
-        {/* Basic pagination placeholder */}
         <div className="flex gap-1">
           <Button variant="outline" size="sm" disabled>Previous</Button>
           <Button variant="outline" size="sm" disabled>Next</Button>

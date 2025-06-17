@@ -1,18 +1,27 @@
 
 export type OrderStatus = 'Pending' | 'Processing' | 'Completed' | 'Cancelled';
+export type PricingModel = 'per_kg' | 'per_item';
+
+export interface ServiceType {
+  id: string;
+  name: string;
+  pricingModel: PricingModel;
+  price: number; // Price per kg if per_kg, price per item if per_item
+}
 
 export interface Order {
   id: string;
   customerName: string;
-  customerId: string; 
-  serviceType: string; 
+  customerId: string;
+  serviceType: string; // Name of the service type
   status: OrderStatus;
-  orderDate: string; 
-  dueDate?: string; 
-  totalAmount: number; 
-  items?: { name: string; quantity: number; price: number }[]; 
-  weightInKg?: number; 
-  perfume?: string; 
+  orderDate: string;
+  dueDate?: string;
+  totalAmount: number;
+  items?: { name: string; quantity: number; price: number }[]; // Keep for potential future use, but not primary for this change
+  weightInKg?: number; // Used if serviceType.pricingModel is 'per_kg'
+  quantity?: number; // Used if serviceType.pricingModel is 'per_item'
+  perfume?: string; // Used if serviceType.pricingModel is 'per_kg'
 }
 
 export interface Customer {
@@ -24,7 +33,7 @@ export interface Customer {
   joinDate: string;
   totalOrders: number;
   lastOrderDate?: string;
-  avatarUrl?: string; 
+  avatarUrl?: string;
 }
 
 export interface User {
@@ -48,10 +57,5 @@ export interface Review {
   customerName: string;
   reviewText: string;
   date: string;
-  rating?: number; 
-}
-
-export interface ServiceType {
-  id: string;
-  name: string;
+  rating?: number;
 }
