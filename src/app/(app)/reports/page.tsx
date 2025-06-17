@@ -1,4 +1,5 @@
 
+"use client";
 import { MetricCard } from '@/components/reports/metric-card';
 import { ChartPlaceholder } from '@/components/reports/chart-placeholder';
 import { DollarSign, ShoppingCart, Users, Percent, RefreshCw } from 'lucide-react';
