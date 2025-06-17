@@ -13,10 +13,10 @@ import React from "react";
 
 
 const reportMetrics: Metric[] = [
-  { title: 'Monthly Revenue', value: 'Rp 4.820', icon: DollarSign, change: '+15.3%', changeType: 'positive' },
+  { title: 'Monthly Revenue', value: 'Rp 4.820.000', icon: DollarSign, change: '+15.3%', changeType: 'positive' },
   { title: 'Orders This Month', value: '78', icon: ShoppingCart, change: '+5', changeType: 'positive' },
   { title: 'New Customers', value: '12', icon: Users, change: '+2', changeType: 'positive' },
-  { title: 'Average Order Value', value: 'Rp 61,79', icon: Percent, change: '-1.2%', changeType: 'negative' },
+  { title: 'Average Order Value', value: 'Rp 61.790', icon: Percent, change: '-1.2%', changeType: 'negative' },
 ];
 
 export default function ReportsPage() {

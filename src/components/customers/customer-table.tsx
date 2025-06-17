@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Edit3, Trash2, MoreVertical, Mail, Phone, ArrowUpDown, MapPin } from 'lucide-react';
+import { User, Edit3, Trash2, MoreVertical, Mail, Phone, ArrowUpDown, MapPin, ArrowUp, ArrowDown } from 'lucide-react';
 import type { Customer } from '@/types';
 import { format } from 'date-fns';
 import { Input } from '@/components/ui/input';
@@ -74,7 +74,10 @@ export function CustomerTable({ customers: initialCustomers }: CustomerTableProp
     if (!sortConfig || sortConfig.key !== key) {
       return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
     }
-    return sortConfig.direction === 'ascending' ? '▲' : '▼';
+    if (sortConfig.direction === 'ascending') {
+      return <ArrowUp className="ml-2 h-4 w-4" />;
+    }
+    return <ArrowDown className="ml-2 h-4 w-4" />;
   };
 
   return (
@@ -91,14 +94,20 @@ export function CustomerTable({ customers: initialCustomers }: CustomerTableProp
             <TableRow>
               <TableHead className="w-[80px]">Avatar</TableHead>
               <TableHead onClick={() => handleSort('name')} className="cursor-pointer">
-                Name {getSortIcon('name')}
+                <div className="flex items-center">
+                  Name {getSortIcon('name')}
+                </div>
               </TableHead>
               <TableHead className="hidden md:table-cell">Contact</TableHead>
               <TableHead onClick={() => handleSort('joinDate')} className="cursor-pointer hidden lg:table-cell">
-                Join Date {getSortIcon('joinDate')}
+                <div className="flex items-center">
+                  Join Date {getSortIcon('joinDate')}
+                </div>
               </TableHead>
               <TableHead onClick={() => handleSort('totalOrders')} className="cursor-pointer text-right hidden sm:table-cell">
-                Total Orders {getSortIcon('totalOrders')}
+                <div className="flex items-center justify-end">
+                  Total Orders {getSortIcon('totalOrders')}
+                </div>
               </TableHead>
               <TableHead className="text-center">Actions</TableHead>
             </TableRow>

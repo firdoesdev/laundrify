@@ -8,9 +8,10 @@ import type { Metric, Order } from '@/types';
 import { sampleOrders } from '@/lib/data';
 import Link from 'next/link';
 import Image from 'next/image';
+import { cn } from '@/lib/utils'; // Import the global cn utility
 
 const metrics: Metric[] = [
-  { title: 'Total Revenue', value: 'Rp 12.345', icon: DollarSign, change: '+5.2%', changeType: 'positive' },
+  { title: 'Total Revenue', value: 'Rp 12.345.000', icon: DollarSign, change: '+5.2%', changeType: 'positive' },
   { title: 'Completed Orders', value: '215', icon: CheckCircle, change: '+10', changeType: 'positive' },
   { title: 'Pending Tasks', value: '12', icon: ListChecks, change: '-2', changeType: 'negative' },
   { title: 'Active Customers', value: '87', icon: Users, change: '+3 New', changeType: 'positive' },
@@ -80,7 +81,7 @@ export default function DashboardPage() {
                           {order.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">{'Rp ' + order.totalAmount.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                      <TableCell className="text-right">{'Rp ' + order.totalAmount.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -131,9 +132,4 @@ export default function DashboardPage() {
       </div>
     </div>
   );
-}
-
-// Helper function to apply conditional class names
-function cn(...classes: string[]) {
-  return classes.filter(Boolean).join(' ');
 }
