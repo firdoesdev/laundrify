@@ -9,7 +9,8 @@ import {
   BarChartBig,
   MessageSquareText,
   Settings,
-  DollarSign, // Added for Pricing Settings
+  DollarSign,
+  ClipboardList, // Added for Service Types
   Package,
 } from 'lucide-react';
 import {
@@ -28,9 +29,10 @@ const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/customers', label: 'Customers', icon: Users },
+  { href: '/service-types', label: 'Service Types', icon: ClipboardList }, // Added Service Types
   { href: '/reports', label: 'Reports', icon: BarChartBig },
   { href: '/reviews', label: 'Reviews Analysis', icon: MessageSquareText },
-  { href: '/settings/pricing', label: 'Pricing Settings', icon: DollarSign }, // Added Pricing Settings
+  { href: '/settings/pricing', label: 'Pricing Settings', icon: DollarSign },
 ];
 
 export function AppSidebar() {
@@ -56,9 +58,7 @@ export function AppSidebar() {
                   tooltip={item.label}
                   onClick={() => setOpenMobile(false)}
                   className="justify-start"
-                  // asChild // Removed as Link is the parent interactive element
                 >
-                  {/* No React.Fragment needed here if SidebarMenuButton is not asChild */}
                   <item.icon className="h-5 w-5" />
                   <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                 </SidebarMenuButton>
@@ -74,7 +74,6 @@ export function AppSidebar() {
               tooltip="Settings" 
               className="justify-start" 
               onClick={() => setOpenMobile(false)}
-              // asChild // Removed
             >
               <Settings className="h-5 w-5" />
               <span className="group-data-[collapsible=icon]:hidden">Settings</span>

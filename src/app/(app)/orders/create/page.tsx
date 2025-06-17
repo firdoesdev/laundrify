@@ -19,15 +19,15 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from '@/hooks/use-toast';
-import type { Order, Customer } from '@/types';
-import { DEFAULT_PRICE_PER_KG, PERFUME_OPTIONS, sampleOrders, sampleCustomers } from '@/lib/data';
-import { CalendarIcon, PlusCircle, User, Tag, Weight, Sparkles, Info, DollarSign, Loader2, Users, ArrowLeft } from 'lucide-react';
+import type { Order, Customer, ServiceType } from '@/types';
+import { DEFAULT_PRICE_PER_KG, PERFUME_OPTIONS, sampleOrders, sampleCustomers, sampleServiceTypes } from '@/lib/data';
+import { CalendarIcon, PlusCircle, User, Tag, Weight, Sparkles, Info, DollarSign, Loader2, Users, ArrowLeft, ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const orderFormSchema = z.object({
   customerId: z.string().min(1, { message: "Please select a customer." }),
-  customerName: z.string(), 
-  serviceType: z.string().min(3, { message: "Service type must be at least 3 characters." }),
+  // customerName is derived from customerId, not a direct form field anymore
+  serviceType: z.string().min(1, { message: "Please select a service type." }),
   weightInKg: z.coerce.number().min(0.1, { message: "Weight must be at least 0.1 kg." }),
   perfume: z.string({ required_error: "Please select a perfume." }),
   dueDate: z.date().optional(),
@@ -44,6 +44,7 @@ export default function CreateOrderPage() {
   const [calculatedTotal, setCalculatedTotal] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
 
   useEffect(() => {
     const storedPrice = localStorage.getItem(LOCAL_STORAGE_PRICE_KEY);
@@ -51,14 +52,14 @@ export default function CreateOrderPage() {
       setPricePerKg(parseFloat(storedPrice));
     }
     setCustomers(sampleCustomers);
+    setServiceTypes(sampleServiceTypes);
   }, []);
 
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderFormSchema),
     defaultValues: {
       customerId: '',
-      customerName: '',
-      serviceType: 'Regular Kilogram',
+      serviceType: '',
       weightInKg: 0,
       perfume: '',
       dueDate: undefined,
@@ -66,16 +67,6 @@ export default function CreateOrderPage() {
   });
 
   const weightInKgValue = form.watch('weightInKg');
-  const selectedCustomerId = form.watch('customerId');
-
-  useEffect(() => {
-    if (selectedCustomerId) {
-      const selectedCustomer = customers.find(c => c.id === selectedCustomerId);
-      if (selectedCustomer) {
-        form.setValue('customerName', selectedCustomer.name);
-      }
-    }
-  }, [selectedCustomerId, customers, form]);
 
   useEffect(() => {
     if (typeof weightInKgValue === 'number' && pricePerKg > 0) {
@@ -87,9 +78,16 @@ export default function CreateOrderPage() {
 
   const onSubmit: SubmitHandler<OrderFormValues> = (data) => {
     setIsLoading(true);
+    const selectedCustomer = customers.find(c => c.id === data.customerId);
+    if (!selectedCustomer) {
+        toast({ title: 'Error', description: 'Selected customer not found.', variant: 'destructive'});
+        setIsLoading(false);
+        return;
+    }
+
     const newOrder: Order = {
       id: `ORD-${Date.now()}`,
-      customerName: data.customerName, 
+      customerName: selectedCustomer.name, 
       customerId: data.customerId,
       serviceType: data.serviceType,
       weightInKg: data.weightInKg,
@@ -115,7 +113,7 @@ export default function CreateOrderPage() {
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight text-foreground font-headline">Create New Laundry Order</h1>
-        <Button variant="outline" onClick={() => router.back()} asChild>
+        <Button variant="outline" asChild>
           <Link href="/orders"><ArrowLeft className="mr-2 h-4 w-4" />Back to Orders</Link>
         </Button>
       </div>
@@ -137,13 +135,7 @@ export default function CreateOrderPage() {
                   <FormItem>
                     <FormLabel>Customer</FormLabel>
                     <Select 
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        const selectedCust = customers.find(c => c.id === value);
-                        if (selectedCust) {
-                          form.setValue('customerName', selectedCust.name);
-                        }
-                      }} 
+                      onValueChange={field.onChange} 
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -169,9 +161,18 @@ export default function CreateOrderPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Service Type</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Regular Kilogram, Express" {...field} className="h-11" />
-                    </FormControl>
+                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="h-11">
+                          <SelectValue placeholder="Select a service type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {serviceTypes.map(st => (
+                          <SelectItem key={st.id} value={st.name}>{st.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

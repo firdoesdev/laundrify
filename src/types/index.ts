@@ -4,15 +4,15 @@ export type OrderStatus = 'Pending' | 'Processing' | 'Completed' | 'Cancelled';
 export interface Order {
   id: string;
   customerName: string;
-  customerId: string; // Can be manual entry for now
-  serviceType: string; // e.g., "Regular Wash", "Express Wash"
+  customerId: string; 
+  serviceType: string; 
   status: OrderStatus;
-  orderDate: string; // Format: 'yyyy-MM-dd'
-  dueDate?: string; // Optional, Format: 'yyyy-MM-dd'
-  totalAmount: number; // Will be calculated: weightInKg * pricePerKg
-  items?: { name: string; quantity: number; price: number }[]; // Optional for add-ons, not used in new form
-  weightInKg?: number; // Weight in kilograms
-  perfume?: string; // Selected perfume
+  orderDate: string; 
+  dueDate?: string; 
+  totalAmount: number; 
+  items?: { name: string; quantity: number; price: number }[]; 
+  weightInKg?: number; 
+  perfume?: string; 
 }
 
 export interface Customer {
@@ -24,7 +24,7 @@ export interface Customer {
   joinDate: string;
   totalOrders: number;
   lastOrderDate?: string;
-  avatarUrl?: string; // Added from customer-table usage
+  avatarUrl?: string; 
 }
 
 export interface User {
@@ -48,5 +48,10 @@ export interface Review {
   customerName: string;
   reviewText: string;
   date: string;
-  rating?: number; // Optional rating
+  rating?: number; 
+}
+
+export interface ServiceType {
+  id: string;
+  name: string;
 }

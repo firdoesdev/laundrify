@@ -18,16 +18,16 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from '@/hooks/use-toast';
-import type { Order, Customer, OrderStatus } from '@/types';
-import { DEFAULT_PRICE_PER_KG, PERFUME_OPTIONS, sampleOrders, sampleCustomers } from '@/lib/data';
-import { CalendarIcon, Save, User, Tag, Weight, Sparkles, Info, DollarSign, Loader2, Users, ArrowLeft, AlertTriangle, CheckCircle } from 'lucide-react';
+import type { Order, Customer, OrderStatus, ServiceType } from '@/types';
+import { DEFAULT_PRICE_PER_KG, PERFUME_OPTIONS, sampleOrders, sampleCustomers, sampleServiceTypes } from '@/lib/data';
+import { CalendarIcon, Save, User, Tag, Weight, Sparkles, Info, DollarSign, Loader2, Users, ArrowLeft, AlertTriangle, CheckCircle, ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
 const orderFormSchema = z.object({
   customerId: z.string().min(1, { message: "Customer ID is required." }),
-  customerName: z.string().min(1, { message: "Customer name is required." }),
-  serviceType: z.string().min(3, { message: "Service type must be at least 3 characters." }),
+  // customerName is derived
+  serviceType: z.string().min(1, { message: "Service type is required." }),
   weightInKg: z.coerce.number().min(0.1, { message: "Weight must be at least 0.1 kg." }),
   perfume: z.string({ required_error: "Please select a perfume." }),
   status: z.enum(['Pending', 'Processing', 'Completed', 'Cancelled'], { required_error: "Please select a status." }),
@@ -50,13 +50,13 @@ export default function EditOrderPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingOrder, setIsFetchingOrder] = useState(true);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
   const [originalOrder, setOriginalOrder] = useState<Order | null>(null);
 
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderFormSchema),
     defaultValues: {
       customerId: '',
-      customerName: '',
       serviceType: '',
       weightInKg: 0,
       perfume: '',
@@ -72,14 +72,18 @@ export default function EditOrderPage() {
       setPricePerKg(parseFloat(storedPrice));
     }
     setCustomers(sampleCustomers);
+    setServiceTypes(sampleServiceTypes);
 
     if (orderId) {
       const foundOrder = sampleOrders.find(o => o.id === orderId);
       if (foundOrder) {
         setOriginalOrder(foundOrder);
         form.reset({
-          ...foundOrder,
+          customerId: foundOrder.customerId,
+          serviceType: foundOrder.serviceType,
           weightInKg: foundOrder.weightInKg || 0,
+          perfume: foundOrder.perfume || '',
+          status: foundOrder.status,
           dueDate: foundOrder.dueDate ? parseISO(foundOrder.dueDate) : undefined,
           orderDate: foundOrder.orderDate ? parseISO(foundOrder.orderDate) : new Date(),
         });
@@ -90,17 +94,6 @@ export default function EditOrderPage() {
   }, [orderId, form]);
 
   const weightInKgValue = form.watch('weightInKg');
-  const selectedCustomerId = form.watch('customerId');
-
- useEffect(() => {
-    if (selectedCustomerId && customers.length > 0) {
-      const selectedCustomer = customers.find(c => c.id === selectedCustomerId);
-      if (selectedCustomer && form.getValues('customerName') !== selectedCustomer.name) {
-         form.setValue('customerName', selectedCustomer.name, { shouldValidate: true });
-      }
-    }
-  }, [selectedCustomerId, customers, form]);
-
 
   useEffect(() => {
     if (typeof weightInKgValue === 'number' && pricePerKg > 0) {
@@ -115,12 +108,13 @@ export default function EditOrderPage() {
   const onSubmit: SubmitHandler<OrderFormValues> = (data) => {
     setIsLoading(true);
     const orderIndex = sampleOrders.findIndex(o => o.id === orderId);
+    const selectedCustomer = customers.find(c => c.id === data.customerId);
 
-    if (orderIndex > -1) {
+    if (orderIndex > -1 && selectedCustomer) {
       const updatedOrder: Order = {
         ...sampleOrders[orderIndex], 
         customerId: data.customerId,
-        customerName: data.customerName,
+        customerName: selectedCustomer.name, // Get name from selected customer
         serviceType: data.serviceType,
         weightInKg: data.weightInKg,
         perfume: data.perfume,
@@ -141,7 +135,7 @@ export default function EditOrderPage() {
     } else {
       toast({
         title: 'Error Updating Order',
-        description: 'Order not found.',
+        description: 'Order not found or customer invalid.',
         variant: 'destructive',
       });
       setIsLoading(false);
@@ -193,14 +187,7 @@ export default function EditOrderPage() {
                   <FormItem>
                     <FormLabel>Customer</FormLabel>
                     <Select 
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        const selectedCust = customers.find(c => c.id === value);
-                        if (selectedCust) {
-                          form.setValue('customerName', selectedCust.name);
-                        }
-                      }} 
-                      defaultValue={field.value}
+                      onValueChange={field.onChange}
                       value={field.value} 
                     >
                       <FormControl>
@@ -226,9 +213,18 @@ export default function EditOrderPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Service Type</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Regular Kilogram, Express" {...field} className="h-11" />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="h-11">
+                          <SelectValue placeholder="Select a service type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {serviceTypes.map(st => (
+                          <SelectItem key={st.id} value={st.name}>{st.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -239,7 +235,7 @@ export default function EditOrderPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Order Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="h-11">
                           <SelectValue placeholder="Select order status" />
@@ -341,7 +337,7 @@ export default function EditOrderPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Perfume Selection</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="h-11">
                           <SelectValue placeholder="Select a perfume" />

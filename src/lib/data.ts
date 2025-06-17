@@ -1,35 +1,40 @@
-import type { Order, Customer, Review } from '@/types';
+import type { Order, Customer, Review, ServiceType } from '@/types';
 import { format } from 'date-fns';
 
-// PRICE_PER_KG will now be managed via localStorage and settings page.
-// A default can be used in the order form if not set.
-export const DEFAULT_PRICE_PER_KG = 15000; // Default price if not set in localStorage
+export const DEFAULT_PRICE_PER_KG = 15000; 
 
 export const PERFUME_OPTIONS = ["Ocean Fresh", "Lavender Bliss", "Spring Dew", "Citrus Burst", "Unscented"];
 
+export const sampleServiceTypes: ServiceType[] = [
+  { id: 'ST001', name: 'Regular Kilogram' },
+  { id: 'ST002', name: 'Express Kilogram (6 Hours)' },
+  { id: 'ST003', name: 'Bed Cover Cleaning' },
+  { id: 'ST004', name: 'Shoes Cleaning' },
+  { id: 'ST005', name: 'Ironing Only' },
+];
 
 export const sampleOrders: Order[] = [
   {
     id: 'ORD001',
     customerName: 'Alice Wonderland',
     customerId: 'CUST001',
-    serviceType: 'Wash & Fold',
+    serviceType: sampleServiceTypes[0].name, // 'Wash & Fold',
     status: 'Completed',
     orderDate: format(new Date(2023, 10, 15), 'yyyy-MM-dd'),
     dueDate: format(new Date(2023, 10, 17), 'yyyy-MM-dd'),
-    totalAmount: 25500, // Example, might not match weight * price if old data
+    totalAmount: 25500, 
     items: [
       { name: 'Shirts', quantity: 5, price: 2500 },
       { name: 'Pants', quantity: 3, price: 3000 },
     ],
-    weightInKg: 1.7, // Example weight
-    perfume: PERFUME_OPTIONS[0], // Example perfume
+    weightInKg: 1.7, 
+    perfume: PERFUME_OPTIONS[0], 
   },
   {
     id: 'ORD002',
     customerName: 'Bob The Builder',
     customerId: 'CUST002',
-    serviceType: 'Dry Cleaning',
+    serviceType: sampleServiceTypes[1].name, // 'Dry Cleaning',
     status: 'Processing',
     orderDate: format(new Date(2023, 11, 1), 'yyyy-MM-dd'),
     dueDate: format(new Date(2023, 11, 5), 'yyyy-MM-dd'),
@@ -38,14 +43,14 @@ export const sampleOrders: Order[] = [
       { name: 'Suit', quantity: 1, price: 20000 },
       { name: 'Dress', quantity: 1, price: 15000 },
     ],
-    weightInKg: 3.0, // Example weight
+    weightInKg: 3.0, 
     perfume: PERFUME_OPTIONS[1],
   },
   {
     id: 'ORD003',
     customerName: 'Charlie Brown',
     customerId: 'CUST003',
-    serviceType: 'Wash & Iron',
+    serviceType: sampleServiceTypes[2].name, // 'Wash & Iron',
     status: 'Pending',
     orderDate: format(new Date(), 'yyyy-MM-dd'),
     totalAmount: 30750,
@@ -53,14 +58,14 @@ export const sampleOrders: Order[] = [
       { name: 'Bed Sheets', quantity: 2, price: 10000 },
       { name: 'Towels', quantity: 5, price: 1500 },
     ],
-    weightInKg: 2.05, // Example weight
+    weightInKg: 2.05, 
     perfume: PERFUME_OPTIONS[2],
   },
     {
     id: 'ORD004',
     customerName: 'Diana Prince',
     customerId: 'CUST004',
-    serviceType: 'Wash & Fold',
+    serviceType: sampleServiceTypes[0].name, //'Wash & Fold',
     status: 'Completed',
     orderDate: format(new Date(2023, 9, 20), 'yyyy-MM-dd'),
     totalAmount: 18000,
@@ -72,12 +77,12 @@ export const sampleOrders: Order[] = [
     id: 'ORD005',
     customerName: 'Edward Scissorhands',
     customerId: 'CUST005',
-    serviceType: 'Dry Cleaning',
+    serviceType: sampleServiceTypes[1].name, // 'Dry Cleaning',
     status: 'Cancelled',
     orderDate: format(new Date(2023, 11, 3), 'yyyy-MM-dd'),
     totalAmount: 55000,
     items: [{ name: 'Coat', quantity: 1, price: 25000 }, { name: 'Scarf', quantity: 2, price: 5000 }],
-    weightInKg: 2.0, // Example, dry cleaning might not be weight based traditionally
+    weightInKg: 2.0, 
     perfume: PERFUME_OPTIONS[3],
   },
 ];
