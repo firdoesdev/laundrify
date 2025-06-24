@@ -51,7 +51,7 @@ export function CustomerTable({ customers: initialCustomers, onDelete }: Custome
             return sortConfig.direction === 'ascending' ? valA - valB : valB - valA;
         }
         if (typeof valA === 'string' && typeof valB === 'string') {
-           if (sortConfig.key === 'joinDate' || sortConfig.key === 'lastOrderDate') {
+           if (sortConfig.key === 'createdAt') {
              const dateA = new Date(valA as string).getTime();
              const dateB = new Date(valB as string).getTime();
              return sortConfig.direction === 'ascending' ? dateA - dateB : dateB - dateA;
