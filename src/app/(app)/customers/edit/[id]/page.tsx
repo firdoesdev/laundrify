@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -15,16 +14,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import type { Customer } from '@/types';
-import { sampleCustomers } from '@/lib/data';
+import { useCustomers } from '@/hooks/useCustomers';
 import { Save, User, Mail, Phone, MapPin, ArrowLeft, Loader2, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
 const customerFormSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  phone: z.string().min(5, { message: "Phone number must be at least 5 digits." }),
+  fullName: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  phoneNumber: z.string().min(5, { message: "Phone number must be at least 5 digits." }),
   email: z.string().email({ message: "Invalid email address." }).optional().or(z.literal('')),
   address: z.string().optional().or(z.literal('')),
-  // joinDate and totalOrders are not typically editable directly in this form
 });
 
 type CustomerFormValues = z.infer<typeof customerFormSchema>;
@@ -34,75 +32,58 @@ export default function EditCustomerPage() {
   const params = useParams();
   const { toast } = useToast();
   const customerId = params.id as string;
+  const { customers, isLoading, isError, updateCustomer } = useCustomers();
+  const customer = customers?.find((c: Customer) => c.id === customerId);
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFetchingCustomer, setIsFetchingCustomer] = useState(true);
-  const [originalCustomer, setOriginalCustomer] = useState<Customer | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
     defaultValues: {
-      name: '',
-      phone: '',
+      fullName: '',
+      phoneNumber: '',
       email: '',
       address: '',
     },
   });
 
   useEffect(() => {
-    if (customerId) {
-      const foundCustomer = sampleCustomers.find(c => c.id === customerId);
-      if (foundCustomer) {
-        setOriginalCustomer(foundCustomer);
-        form.reset({
-          name: foundCustomer.name,
-          phone: foundCustomer.phone,
-          email: foundCustomer.email || '',
-          address: foundCustomer.address || '',
-        });
-      }
-      setIsFetchingCustomer(false);
+    if (customer) {
+      form.reset({
+        fullName: customer.fullName,
+        phoneNumber: customer.phoneNumber,
+        email: customer.email || '',
+        address: customer.address || '',
+      });
     }
-  }, [customerId, form]);
+  }, [customer, form]);
 
-  const onSubmit: SubmitHandler<CustomerFormValues> = (data) => {
-    setIsLoading(true);
-    const customerIndex = sampleCustomers.findIndex(c => c.id === customerId);
-
-    if (customerIndex > -1 && originalCustomer) {
-      const updatedCustomer: Customer = {
-        ...originalCustomer, // Preserve non-form fields like joinDate, totalOrders, id
-        name: data.name,
-        phone: data.phone,
-        email: data.email || undefined,
-        address: data.address || undefined,
-        // lastOrderDate might be updated by order system, not here
-      };
-      sampleCustomers[customerIndex] = updatedCustomer;
-
+  const onSubmit: SubmitHandler<CustomerFormValues> = async (data) => {
+    setIsSubmitting(true);
+    try {
+      await updateCustomer.mutateAsync({ id: customerId, data });
       toast({
         title: 'Customer Updated Successfully!',
-        description: `Customer ${updatedCustomer.name} (ID: ${updatedCustomer.id}) has been updated.`,
+        description: `Customer ${data.fullName} has been updated.`,
       });
-      setIsLoading(false);
-      router.push(`/customers/${customerId}`); // Redirect to detail page
-      router.refresh();
-    } else {
+      router.push(`/customers/${customerId}`);
+    } catch (error: any) {
       toast({
         title: 'Error Updating Customer',
-        description: 'Customer not found.',
+        description: error.message || 'Failed to update customer.',
         variant: 'destructive',
       });
-      setIsLoading(false);
+    } finally {
+      setIsSubmitting(false);
     }
   };
-  
-  if (isFetchingCustomer) {
+
+  if (isLoading) {
     return <div className="flex justify-center items-center h-64">Loading customer data...</div>;
   }
 
-  if (!originalCustomer && !isFetchingCustomer) {
-     return (
+  if (isError || !customer) {
+    return (
       <div className="flex flex-col items-center justify-center text-center p-6">
         <AlertTriangle className="w-16 h-16 text-destructive mb-4" />
         <h2 className="text-2xl font-bold text-foreground mb-2">Customer Not Found</h2>
@@ -119,7 +100,7 @@ export default function EditCustomerPage() {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground font-headline">Edit Customer: {originalCustomer?.name}</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground font-headline">Edit Customer: {customer?.fullName}</h1>
          <Button variant="outline" onClick={() => router.back()}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
@@ -137,7 +118,7 @@ export default function EditCustomerPage() {
             <CardContent className="grid gap-6">
               <FormField
                 control={form.control}
-                name="name"
+                name="fullName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Full Name</FormLabel>
@@ -150,7 +131,7 @@ export default function EditCustomerPage() {
               />
               <FormField
                 control={form.control}
-                name="phone"
+                name="phoneNumber"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
@@ -189,8 +170,8 @@ export default function EditCustomerPage() {
               />
             </CardContent>
             <CardFooter className="flex justify-end pt-6 border-t">
-                <Button type="submit" size="lg" className="text-base shadow-md hover:shadow-lg transition-shadow" disabled={isLoading}>
-                {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
+                <Button type="submit" size="lg" className="text-base shadow-md hover:shadow-lg transition-shadow" disabled={isSubmitting || updateCustomer.isLoading}>
+                {isSubmitting || updateCustomer.isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
                 Save Changes
                 </Button>
             </CardFooter>

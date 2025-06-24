@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -17,9 +16,10 @@ import { sampleCustomers } from '@/lib/data'; // Import to modify global array o
 
 interface CustomerTableProps {
   customers: Customer[];
+  onDelete?: (id: string) => void;
 }
 
-export function CustomerTable({ customers: initialCustomers }: CustomerTableProps) {
+export function CustomerTable({ customers: initialCustomers, onDelete }: CustomerTableProps) {
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Customer | null; direction: 'ascending' | 'descending' } | null>(null);
@@ -75,27 +75,27 @@ export function CustomerTable({ customers: initialCustomers }: CustomerTableProp
 
 
   const filteredCustomers = sortedCustomers.filter(customer =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    customer.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (customer.email && customer.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    customer.phone.includes(searchTerm)
+    (customer.phoneNumber && customer.phoneNumber.includes(searchTerm))
   );
 
   const handleDeleteCustomer = (customerId: string) => {
-    // Update local state for immediate UI feedback
-    const updatedCustomers = customers.filter(customer => customer.id !== customerId);
-    setCustomers(updatedCustomers);
-
-    // Update global sampleCustomers array
-    const index = sampleCustomers.findIndex(customer => customer.id === customerId);
-    if (index > -1) {
-      sampleCustomers.splice(index, 1);
+    if (onDelete) {
+      onDelete(customerId);
+    } else {
+      // fallback: local state update (for test/dev only)
+      const updatedCustomers = customers.filter(customer => customer.id !== customerId);
+      setCustomers(updatedCustomers);
+      const index = sampleCustomers.findIndex(customer => customer.id === customerId);
+      if (index > -1) {
+        sampleCustomers.splice(index, 1);
+      }
+      toast({
+        title: 'Customer Deleted',
+        description: `Customer ${customerId} has been deleted.`,
+      });
     }
-    
-    toast({
-      title: 'Customer Deleted',
-      description: `Customer ${customerId} has been deleted.`,
-    });
-    // router.refresh(); // To ensure data consistency on the page
   };
   
   const getSortIcon = (key: keyof Customer) => {
@@ -121,20 +121,15 @@ export function CustomerTable({ customers: initialCustomers }: CustomerTableProp
           <TableHeader>
             <TableRow>
               <TableHead className="w-[80px]">Avatar</TableHead>
-              <TableHead onClick={() => handleSort('name')} className="cursor-pointer">
+              <TableHead onClick={() => handleSort('fullName')} className="cursor-pointer">
                 <div className="flex items-center">
-                  Name {getSortIcon('name')}
+                  Name {getSortIcon('fullName')}
                 </div>
               </TableHead>
               <TableHead className="hidden md:table-cell">Contact & Address</TableHead>
-              <TableHead onClick={() => handleSort('joinDate')} className="cursor-pointer hidden lg:table-cell">
+              <TableHead onClick={() => handleSort('createdAt')} className="cursor-pointer hidden lg:table-cell">
                 <div className="flex items-center">
-                  Join Date {getSortIcon('joinDate')}
-                </div>
-              </TableHead>
-              <TableHead onClick={() => handleSort('totalOrders')} className="cursor-pointer text-right hidden sm:table-cell">
-                <div className="flex items-center justify-end">
-                  Total Orders {getSortIcon('totalOrders')}
+                  Join Date {getSortIcon('createdAt')}
                 </div>
               </TableHead>
               <TableHead className="text-center">Actions</TableHead>
@@ -146,17 +141,17 @@ export function CustomerTable({ customers: initialCustomers }: CustomerTableProp
                 <TableRow key={customer.id} className="hover:bg-muted/50 transition-colors">
                   <TableCell>
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={customer.avatarUrl || `https://avatar.vercel.sh/${customer.email || customer.name}.png?size=40`} alt={customer.name} data-ai-hint="person face" />
-                      <AvatarFallback>{customer.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      <AvatarImage src={customer.avatarUrl || `https://avatar.vercel.sh/${customer.email || customer.fullName}.png?size=40`} alt={customer.fullName} data-ai-hint="person face" />
+                      <AvatarFallback>{customer.fullName?.substring(0, 2).toUpperCase()}</AvatarFallback>
                     </Avatar>
                   </TableCell>
                   <TableCell className="font-medium text-primary">
-                     <Link href={`/customers/${customer.id}`} className="hover:underline">{customer.name}</Link>
+                     <Link href={`/customers/${customer.id}`} className="hover:underline">{customer.fullName}</Link>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <div className="flex flex-col text-xs">
                       <span className="flex items-center gap-1">
-                        <Phone className="h-3 w-3 text-muted-foreground" /> {customer.phone}
+                        <Phone className="h-3 w-3 text-muted-foreground" /> {customer.phoneNumber}
                       </span>
                       {customer.email && (
                         <span className="flex items-center gap-1 text-muted-foreground">
@@ -170,8 +165,11 @@ export function CustomerTable({ customers: initialCustomers }: CustomerTableProp
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="hidden lg:table-cell">{format(new Date(customer.joinDate), 'PP', { locale: dateFnsLocaleId })}</TableCell>
-                  <TableCell className="text-right hidden sm:table-cell">{customer.totalOrders}</TableCell>
+                  <TableCell className="hidden lg:table-cell">
+                    {customer.createdAt && !isNaN(new Date(customer.createdAt).getTime())
+                      ? format(new Date(customer.createdAt), 'PP', { locale: dateFnsLocaleId })
+                      : '-'}
+                  </TableCell>
                   <TableCell className="text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -201,7 +199,7 @@ export function CustomerTable({ customers: initialCustomers }: CustomerTableProp
               ))
             ) : (
                <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                   No customers found.
                 </TableCell>
               </TableRow>

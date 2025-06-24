@@ -1,61 +1,48 @@
-
-export type OrderStatus = 'Pending' | 'Processing' | 'Completed' | 'Cancelled';
-export type PricingModel = 'per_kg' | 'per_item';
+export type OrderStatus = 'DITERIMA' | 'DICUCI' | 'SIAP_DIAAMBIL' | 'SELESAI' | 'DIBATALKAN';
+export type PaymentStatus = 'PENDING' | 'PAID' | 'CANCELLED';
+export type PricingModel = 'RUPIAH_PER_KG' | 'RUPIAH_PER_ITEM';
 
 export interface ServiceType {
   id: string;
   name: string;
   pricingModel: PricingModel;
-  price: number; // Price per kg if per_kg, price per item if per_item
+  price: number;
+  estimatedDuration: number;
 }
 
 export interface Order {
   id: string;
-  customerName: string;
   customerId: string;
-  serviceType: string; // Name of the service type
-  status: OrderStatus;
+  serviceTypeId: string;
+  items?: string;
+  weight?: number;
+  quantity?: number;
   orderDate: string;
-  dueDate?: string;
-  totalAmount: number;
-  items?: { name: string; quantity: number; price: number }[]; // Keep for potential future use, but not primary for this change
-  weightInKg?: number; // Used if serviceType.pricingModel is 'per_kg'
-  quantity?: number; // Used if serviceType.pricingModel is 'per_item'
-  perfume?: string; // Used if serviceType.pricingModel is 'per_kg'
+  dueDate: string;
+  paymentStatus: PaymentStatus;
+  status: OrderStatus;
+  receiptNumber?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Optionally, you can add these if you join with relations:
+  customer?: Customer;
+  serviceType?: ServiceType;
 }
 
 export interface Customer {
   id: string;
-  name: string;
-  phone: string;
+  fullName: string;
+  phoneNumber: string;
   email?: string;
   address?: string;
-  joinDate: string;
-  totalOrders: number;
-  lastOrderDate?: string;
-  avatarUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+  orders?: Order[];
 }
 
-export interface User {
+export interface Report {
   id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'staff';
-  avatarUrl?: string;
-}
-
-export interface Metric {
   title: string;
-  value: string;
-  icon: React.ElementType;
-  change?: string;
-  changeType?: 'positive' | 'negative';
-}
-
-export interface Review {
-  id: string;
-  customerName: string;
-  reviewText: string;
-  date: string;
-  rating?: number;
+  content: string;
+  createdAt: string;
 }
