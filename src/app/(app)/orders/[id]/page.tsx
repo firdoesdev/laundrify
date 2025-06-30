@@ -1,219 +1,137 @@
-
 "use client";
 
-import React, { useEffect, useState } from 'react';
+
+import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useOrders } from '@/hooks/useOrders';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, Trash2, Package, User, CalendarDays, Tag, Weight, Sparkles, DollarSign, AlertTriangle, PackageIcon } from 'lucide-react';
-import { sampleOrders, sampleServiceTypes } from '@/lib/data';
-import type { Order, ServiceType } from '@/types';
+import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { id as dateFnsLocaleId } from 'date-fns/locale';
-import { useToast } from '@/hooks/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { DollarSign, Users, PackageIcon, CalendarIcon, Weight } from 'lucide-react';
+
 
 export default function OrderDetailPage() {
-  const router = useRouter();
   const params = useParams();
-  const { toast } = useToast();
-  const [order, setOrder] = useState<Order | null>(null);
-  const [serviceTypeDetail, setServiceTypeDetail] = useState<ServiceType | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const id = typeof params.id === 'string' ? params.id : Array.isArray(params.id) ? params.id[0] : '';
+  const router = useRouter();
+  const { orders, isLoading, deleteOrder } = useOrders();
+  const order = Array.isArray(orders) ? orders.find((o) => o.id === id) : undefined;
 
-  const orderId = params.id as string;
+  if (isLoading) return <div className="py-10 text-center text-muted-foreground">Loading...</div>;
+  if (!order) return <div className="py-10 text-center text-muted-foreground">Order not found.</div>;
 
-  useEffect(() => {
-    if (orderId) {
-      const foundOrder = sampleOrders.find(o => o.id === orderId);
-      if (foundOrder) {
-        setOrder(foundOrder);
-        const foundServiceType = sampleServiceTypes.find(st => st.name === foundOrder.serviceType);
-        setServiceTypeDetail(foundServiceType || null);
-      }
-      setIsLoading(false);
-    }
-  }, [orderId]);
-
-  const handleDeleteOrder = () => {
-    if (!order) return;
-    const index = sampleOrders.findIndex(o => o.id === order.id);
-    if (index > -1) {
-      sampleOrders.splice(index, 1);
-      toast({
-        title: 'Order Deleted',
-        description: `Order ${order.id} has been successfully deleted.`,
-      });
-      router.push('/orders');
-      router.refresh();
-    } else {
-      toast({
-        title: 'Error Deleting Order',
-        description: 'Order not found or already deleted.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-64">Loading order details...</div>;
-  }
-
-  if (!order) {
-    return (
-      <div className="flex flex-col items-center justify-center text-center p-6">
-        <AlertTriangle className="w-16 h-16 text-destructive mb-4" />
-        <h2 className="text-2xl font-bold text-foreground mb-2">Order Not Found</h2>
-        <p className="text-muted-foreground mb-6">The order with ID "{orderId}" could not be found.</p>
-        <Button asChild>
-          <Link href="/orders">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Orders
-          </Link>
-        </Button>
-      </div>
-    );
-  }
+  // Calculate estimated price
+  const pricePerUnit = order.serviceType?.price ?? 0;
+  const estimatedPrice = order.weight ? order.weight * pricePerUnit : order.quantity ? order.quantity * pricePerUnit : 0;
+  const isWeightBased = order.weight !== null && order.weight !== undefined;
+  const isQuantityBased = order.quantity !== null && order.quantity !== undefined;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground font-headline">Order Details: {order.id}</h1>
-        <Button variant="outline" onClick={() => router.push('/orders')}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Orders
-        </Button>
-      </div>
+    <div className="max-w-2xl mx-auto py-10">
+      <Card className="p-8 space-y-8 shadow-xl">
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-3xl font-bold font-headline flex items-center gap-2">
+            <PackageIcon className="h-7 w-7 text-primary" /> Order Detail
+          </h1>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => router.back()}>Back</Button>
+            <Button onClick={() => router.push(`/orders/edit/${order.id}`)}>Edit</Button>
+          </div>
+        </div>
 
-      <Card className="shadow-xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-2xl">
-            <Package className="h-7 w-7 text-primary" />
-            Order Summary
-          </CardTitle>
-          <CardDescription>
-            Status: <span className={`font-semibold ${
-              order.status === 'Completed' ? 'text-green-600' :
-              order.status === 'Processing' ? 'text-blue-600' :
-              order.status === 'Pending' ? 'text-yellow-600' :
-              order.status === 'Cancelled' ? 'text-red-600' : 'text-foreground'
-            }`}>{order.status}</span>
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
-          <div className="flex items-center">
-            <User className="mr-3 h-5 w-5 text-muted-foreground" />
-            <div>
-              <p className="font-medium text-muted-foreground">Customer Name</p>
-              <p className="text-foreground text-base">{order.customerName}</p>
-            </div>
+        {/* Order ID and Status */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+          <div className="text-muted-foreground text-sm">Order ID: <span className="font-mono text-foreground">{order.id}</span></div>
+          <div className="flex gap-2 items-center">
+            <Badge variant={order.status === 'SELESAI' ? 'default' : order.status === 'DITERIMA' ? 'secondary' : 'outline'}
+              className={
+                order.status === 'SELESAI' ? 'bg-green-100 text-green-700 border-green-300' :
+                order.status === 'DICUCI' ? 'bg-blue-100 text-blue-700 border-blue-300' :
+                order.status === 'DITERIMA' ? 'bg-yellow-100 text-yellow-700 border-yellow-300' :
+                order.status === 'DIBATALKAN' ? 'bg-red-100 text-red-700 border-red-300' :
+                order.status === 'SIAP_DIAAMBIL' ? 'bg-purple-100 text-purple-700 border-purple-300' : ''
+              }
+            >{order.status}</Badge>
+            <Badge variant={order.paymentStatus === 'PAID' ? 'default' : order.paymentStatus === 'PENDING' ? 'secondary' : 'outline'}
+              className={
+                order.paymentStatus === 'PAID' ? 'bg-green-100 text-green-700 border-green-300' :
+                order.paymentStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-700 border-yellow-300' :
+                order.paymentStatus === 'CANCELLED' ? 'bg-red-100 text-red-700 border-red-300' : ''
+              }
+            >{order.paymentStatus}</Badge>
           </div>
-          <div className="flex items-center">
-            <Tag className="mr-3 h-5 w-5 text-muted-foreground" />
-            <div>
-              <p className="font-medium text-muted-foreground">Customer ID</p>
-              <p className="text-foreground text-base">{order.customerId}</p>
-            </div>
-          </div>
-          <div className="flex items-center">
-            <Package className="mr-3 h-5 w-5 text-muted-foreground" />
-            <div>
-              <p className="font-medium text-muted-foreground">Service Type</p>
-              <p className="text-foreground text-base">{order.serviceType}</p>
-            </div>
-          </div>
-          <div className="flex items-center">
-            <CalendarDays className="mr-3 h-5 w-5 text-muted-foreground" />
-            <div>
-              <p className="font-medium text-muted-foreground">Order Date</p>
-              <p className="text-foreground text-base">{format(new Date(order.orderDate), 'PPP', { locale: dateFnsLocaleId })}</p>
-            </div>
-          </div>
-          {order.dueDate && (
-            <div className="flex items-center">
-              <CalendarDays className="mr-3 h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="font-medium text-muted-foreground">Due Date</p>
-                <p className="text-foreground text-base">{format(new Date(order.dueDate), 'PPP', { locale: dateFnsLocaleId })}</p>
-              </div>
-            </div>
-          )}
-          
-          {serviceTypeDetail?.pricingModel === 'per_kg' && order.weightInKg !== undefined && (
-            <div className="flex items-center">
-              <Weight className="mr-3 h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="font-medium text-muted-foreground">Weight</p>
-                <p className="text-foreground text-base">{order.weightInKg.toLocaleString('id-ID')} kg</p>
-              </div>
-            </div>
-          )}
-          {serviceTypeDetail?.pricingModel === 'per_item' && order.quantity !== undefined && (
-            <div className="flex items-center">
-              <PackageIcon className="mr-3 h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="font-medium text-muted-foreground">Quantity</p>
-                <p className="text-foreground text-base">{order.quantity.toLocaleString('id-ID')} item(s)</p>
-              </div>
-            </div>
-          )}
+        </div>
 
-          {serviceTypeDetail?.pricingModel === 'per_kg' && order.perfume && (
-            <div className="flex items-center">
-              <Sparkles className="mr-3 h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="font-medium text-muted-foreground">Perfume</p>
-                <p className="text-foreground text-base">{order.perfume}</p>
-              </div>
+        {/* Customer & Service Info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-lg font-semibold">
+              <Users className="h-5 w-5 text-primary" />
+              {order.customer?.fullName || order.customerId}
             </div>
-          )}
+            <div className="text-muted-foreground text-sm">Phone: {order.customer?.phoneNumber || '-'}</div>
+            <div className="text-muted-foreground text-sm">Email: {order.customer?.email || '-'}</div>
+            <div className="text-muted-foreground text-sm">Address: {order.customer?.address || '-'}</div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-lg font-semibold">
+              <PackageIcon className="h-5 w-5 text-primary" />
+              {order.serviceType?.name || order.serviceTypeId}
+            </div>
+            <div className="text-muted-foreground text-sm">Price per {isWeightBased ? 'kg' : isQuantityBased ? 'pcs' : 'unit'}: <span className="font-semibold">Rp {pricePerUnit.toLocaleString('id-ID')}</span></div>
+            <div className="text-muted-foreground text-sm">Estimated Duration: {order.serviceType?.estimatedDuration ? `${order.serviceType.estimatedDuration} hr` : '-'}</div>
+          </div>
+        </div>
 
-          <div className="flex items-center md:col-span-2">
-            <DollarSign className="mr-3 h-5 w-5 text-green-600" />
-            <div>
-              <p className="font-medium text-muted-foreground">Total Amount</p>
-              <p className="text-foreground text-xl font-semibold">Rp {order.totalAmount.toLocaleString('id-ID')}</p>
+        {/* Order Details */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="h-4 w-4 text-primary" />
+              <span className="font-semibold">Order Date:</span>
+              <span>{order.orderDate ? format(new Date(order.orderDate), 'PPPp', { locale: dateFnsLocaleId }) : '-'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="h-4 w-4 text-primary" />
+              <span className="font-semibold">Due Date:</span>
+              <span>{order.dueDate ? format(new Date(order.dueDate), 'PPPp', { locale: dateFnsLocaleId }) : '-'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">Created At:</span>
+              <span>{order.createdAt ? format(new Date(order.createdAt), 'PPPp', { locale: dateFnsLocaleId }) : '-'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">Updated At:</span>
+              <span>{order.updatedAt ? format(new Date(order.updatedAt), 'PPPp', { locale: dateFnsLocaleId }) : '-'}</span>
             </div>
           </div>
-        </CardContent>
-        <CardFooter className="flex justify-end gap-3 pt-6 border-t">
-          <Button variant="outline" asChild>
-            <Link href={`/orders/edit/${order.id}`}>
-              <Edit className="mr-2 h-4 w-4" /> Edit Order
-            </Link>
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive">
-                <Trash2 className="mr-2 h-4 w-4" /> Delete Order
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete the order
-                  <span className="font-semibold"> {order.id}</span>.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteOrder} className="bg-destructive hover:bg-destructive/90">
-                  Yes, delete order
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </CardFooter>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Weight className="h-4 w-4 text-primary" />
+              <span className="font-semibold">Weight:</span>
+              <span>{order.weight ? `${order.weight.toLocaleString('id-ID')} kg` : '-'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <PackageIcon className="h-4 w-4 text-primary" />
+              <span className="font-semibold">Quantity:</span>
+              <span>{order.quantity ? `${order.quantity.toLocaleString('id-ID')} pcs` : '-'}</span>
+            </div>
+            {/* Perfume Selection for per_kg */}
+            {isWeightBased && order.perfume && (
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">Perfume:</span>
+                <span>{order.perfume}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2 text-lg mt-4">
+              <DollarSign className="h-5 w-5 text-green-600" />
+              <span className="font-semibold">Estimated Price:</span>
+              <span className="font-bold text-primary">Rp {estimatedPrice.toLocaleString('id-ID')}</span>
+            </div>
+          </div>
+        </div>
       </Card>
     </div>
   );

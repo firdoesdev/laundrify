@@ -17,6 +17,7 @@ This project is structured to follow best practices for maintainability and scal
   - **api/**: API client setup and configurations.
   - **app/**: Main application entry point and routing setup.
     - **(app)/**: auth routes and components.
+- **prisma/**: Database schema and migrations for Prisma ORM.
 - **tests/**: Contains unit and integration tests for the application.
 - **public/**: Static assets like images and fonts.
 - **config/**: Configuration files for the application, such as environment variables and build settings.
@@ -24,11 +25,14 @@ This project is structured to follow best practices for maintainability and scal
 - **types/**: TypeScript type definitions and interfaces.
 - **docs/**: Documentation files, including this project structure guide.
 - **.github/**: GitHub-specific files, including workflows and issue templates.
+
+
 ## Naming Conventions
 - Use **camelCase** for variables and functions.
 - Use **PascalCase** for React components and classes.
 - Use **kebab-case** for file and directory names.
 - Use **UPPER_SNAKE_CASE** for constants.
+
 ## File Structure
 - Each component should have its own directory under `src/components/` with an `index.tsx` file for exports.
 - Hooks should be placed in `src/hooks/` with descriptive names.
@@ -36,6 +40,7 @@ This project is structured to follow best practices for maintainability and scal
 - Styles should be modular, with each component having its own style file if necessary, located in `src/styles/`.
 - Utility functions should be grouped logically in `src/utils/`, with each function in its own file if complex.
 - Tests should mirror the structure of the `src/` directory, with test files named `*.test.tsx` or `*.test.ts`.
+
 ## Best Practices
 - Keep components small and focused on a single responsibility.
 - Use hooks for shared logic to avoid duplication.

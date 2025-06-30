@@ -1,16 +1,15 @@
 
-"use client"; // Make this a client component to re-fetch/re-render sampleOrders
+
+"use client";
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { OrderTable } from '@/components/orders/order-table';
-import { sampleOrders } from '@/lib/data'; // Import to pass potentially mutated array
 import { PlusCircle } from 'lucide-react';
-import React from 'react'; // Import React for potential future state management if needed
+import React from 'react';
+import { useOrders } from '@/hooks/useOrders';
 
 export default function OrdersPage() {
-  // By re-importing sampleOrders here on each render, we should get the latest
-  // version of the in-memory array if it has been mutated by other pages.
-  const orders = [...sampleOrders]; // Create a new reference to trigger re-render if needed
+  const { orders, isLoading, isError, error } = useOrders();
 
   return (
     <div className="flex flex-col gap-6">
@@ -23,8 +22,13 @@ export default function OrdersPage() {
           </Link>
         </Button>
       </div>
-      {/* Pass the potentially updated orders to OrderTable */}
-      <OrderTable orders={orders} />
+      {isLoading ? (
+        <div className="text-center py-10 text-muted-foreground">Loading orders...</div>
+      ) : isError ? (
+        <div className="text-center py-10 text-destructive">{error instanceof Error ? error.message : 'Failed to load orders.'}</div>
+      ) : (
+        <OrderTable orders={orders ?? []} />
+      )}
     </div>
   );
 }

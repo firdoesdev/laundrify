@@ -50,6 +50,7 @@ model Order {
   items         String?     // description of items
   weight        Float?      // in kg
   quantity      Int?        // in items
+  perfume       String?     // perfume selection (optional)
   orderDate     DateTime    @default(now())
   dueDate       DateTime
   paymentStatus PaymentStatus @default(PENDING)

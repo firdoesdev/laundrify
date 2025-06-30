@@ -17,6 +17,7 @@ export interface Order {
   items?: string;
   weight?: number;
   quantity?: number;
+  perfume?: string;
   orderDate: string;
   dueDate: string;
   paymentStatus: PaymentStatus;
