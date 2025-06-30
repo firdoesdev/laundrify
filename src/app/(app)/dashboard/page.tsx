@@ -1,29 +1,69 @@
+"use client";
 
+// ...existing code for the dashboard UI (cards, metrics, recent orders, quick actions)...
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DollarSign, CheckCircle, ListChecks, Users, ShoppingCart, ArrowUpRight, ArrowDownRight, Activity, Package } from 'lucide-react';
-import type { Metric, Order } from '@/types';
-import { sampleOrders } from '@/lib/data';
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
+import * as RechartsPrimitive from 'recharts';
+// Remove Metric import, define locally for dashboard mock
+// import { sampleOrders } from '@/lib/data';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
-const metrics: Metric[] = [
-  { title: 'Total Revenue', value: 'Rp 12.345.000', icon: DollarSign, change: '+5.2%', changeType: 'positive' },
-  { title: 'Completed Orders', value: '215', icon: CheckCircle, change: '+10', changeType: 'positive' },
-  { title: 'Pending Tasks', value: '12', icon: ListChecks, change: '-2', changeType: 'negative' },
-  { title: 'Active Customers', value: '87', icon: Users, change: '+3 New', changeType: 'positive' },
-];
 
-const recentOrders = sampleOrders.slice(0, 5);
+type Metric = {
+  title: string;
+  value: string;
+  icon: React.ElementType;
+  change?: string;
+  changeType?: 'positive' | 'negative';
+};
+
+
+import { useQuery } from '@tanstack/react-query';
+import { fetchDashboardStats, fetchRecentOrders, fetchOrderTrends, fetchTopCustomers } from '@/services/dashboardService';
+
 
 export default function DashboardPage() {
+  // Fetch real stats for metrics
+  const { data: stats } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: fetchDashboardStats,
+  });
+
+  // Fetch recent orders from API
+  const { data: recentOrdersData } = useQuery({
+    queryKey: ['dashboard-recent-orders'],
+    queryFn: fetchRecentOrders,
+  });
+  const recentOrders = recentOrdersData?.orders ?? [];
+
+  // Fetch order trends for chart
+  const { data: orderTrends } = useQuery({
+    queryKey: ['dashboard-order-trends'],
+    queryFn: fetchOrderTrends,
+  });
+
+  // Fetch top customers for leaderboard
+  const { data: topCustomers } = useQuery({
+    queryKey: ['dashboard-top-customers'],
+    queryFn: fetchTopCustomers,
+  });
+
+  const metrics: Metric[] = [
+    { title: 'Total Revenue', value: 'Rp ' + (stats?.totalRevenue?.toLocaleString('id-ID') ?? '0'), icon: DollarSign, change: '+5.2%', changeType: 'positive' },
+    { title: 'Completed Orders', value: stats?.completedOrders?.toString() ?? '0', icon: CheckCircle, change: '+10', changeType: 'positive' },
+    { title: 'Pending Tasks', value: stats?.pendingOrders?.toString() ?? '0', icon: ListChecks, change: '-2', changeType: 'negative' },
+    { title: 'Active Customers', value: stats?.totalCustomers?.toString() ?? '0', icon: Users, change: '+3 New', changeType: 'positive' },
+  ];
+
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-3xl font-bold tracking-tight text-foreground font-headline">Dashboard Overview</h1>
-      
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {metrics.map((metric) => (
           <Card key={metric.title} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -49,6 +89,63 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
+        {/* Order Trends Chart */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="font-headline text-xl">Order Trends</CardTitle>
+            <CardDescription>Orders per day (last 14 days)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {orderTrends && orderTrends.length > 0 ? (
+              <div className="w-full h-96">
+                {/* Chart: orders per day */}
+                <ChartContainer config={{ count: { color: '#2563eb', label: 'Orders' } }}>
+                  <RechartsPrimitive.LineChart data={orderTrends} margin={{ top: 16, right: 16, left: 0, bottom: 0 }}>
+                    <RechartsPrimitive.CartesianGrid strokeDasharray="3 3" />
+                    <RechartsPrimitive.XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                    <RechartsPrimitive.YAxis tick={{ fontSize: 12 }} />
+                    <RechartsPrimitive.Tooltip content={<ChartTooltipContent />} />
+                    <RechartsPrimitive.Line type="monotone" dataKey="count" stroke="#2563eb" strokeWidth={2} dot={false} />
+                  </RechartsPrimitive.LineChart>
+                </ChartContainer>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">No trend data.</div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Top Customers Leaderboard */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="font-headline text-xl">Top Customers</CardTitle>
+            <CardDescription>Most valuable customers (by revenue)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {topCustomers && topCustomers.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Total Orders</TableHead>
+                    <TableHead className="text-right">Total Spent</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {topCustomers.slice(0, 3).map((customer: any) => (
+                    <TableRow key={customer.id}>
+                      <TableCell>{customer.fullName}</TableCell>
+                      <TableCell>{customer.totalOrders}</TableCell>
+                      <TableCell className="text-right">{'Rp ' + (customer.totalSpent ?? 0).toLocaleString('id-ID')}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">No customer data.</div>
+            )}
+          </CardContent>
+        </Card>
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="font-headline text-xl">Recent Orders</CardTitle>
@@ -66,7 +163,7 @@ export default function DashboardPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentOrders.map((order) => (
+                  {recentOrders.map((order: any) => (
                     <TableRow key={order.id}>
                       <TableCell className="font-medium text-primary hover:underline">
                         <Link href={`/orders/${order.id}`}>{order.id}</Link>
@@ -74,19 +171,19 @@ export default function DashboardPage() {
                       <TableCell>{order.customerName}</TableCell>
                       <TableCell>
                         <Badge 
-                          variant={order.status === 'Completed' ? 'default' : order.status === 'Pending' ? 'secondary' : 'outline'}
+                          variant={order.status === 'SELESAI' ? 'default' : order.status === 'DITERIMA' ? 'secondary' : 'outline'}
                           className={cn(
                             'text-xs whitespace-nowrap',
-                            order.status === 'Completed' && 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200',
-                            order.status === 'Processing' && 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200',
-                            order.status === 'Pending' && 'bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200',
-                            order.status === 'Cancelled' && 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200'
+                            order.status === 'SELESAI' && 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200',
+                            order.status === 'DICUCI' && 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200',
+                            order.status === 'DITERIMA' && 'bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200',
+                            order.status === 'DIBATALKAN' && 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200'
                           )}
                         >
                           {order.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">{'Rp ' + order.totalAmount.toLocaleString('id-ID')}</TableCell>
+                      <TableCell className="text-right">{'Rp ' + (order.amount ?? 0).toLocaleString('id-ID')}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
