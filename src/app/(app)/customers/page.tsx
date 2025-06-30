@@ -1,18 +1,31 @@
-
 "use client"; // Make this a client component to re-fetch/re-render sampleCustomers
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { CustomerTable } from '@/components/customers/customer-table';
-import { sampleCustomers } from '@/lib/data'; // Import to pass potentially mutated array
+import { useCustomers } from '@/hooks/useCustomers';
 import { UserPlus } from 'lucide-react';
 import React from 'react'; // Import React for potential future state management if needed
 
 
 export default function CustomersPage() {
-  // By re-importing sampleCustomers here on each render, we should get the latest
-  // version of the in-memory array if it has been mutated by other pages.
-  const customers = [...sampleCustomers]; // Create a new reference
+  const {
+    customers,
+    isLoading,
+    isError,
+    error,
+    createCustomer,
+    updateCustomer,
+    deleteCustomer,
+    refetch,
+  } = useCustomers();
+
+  if (isLoading) {
+    return <div>Loading customers...</div>;
+  }
+  if (isError) {
+    return <div>Error loading customers: {error?.message}</div>;
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -25,8 +38,8 @@ export default function CustomersPage() {
           </Link>
         </Button>
       </div>
-      {/* Pass the potentially updated customers to CustomerTable */}
-      <CustomerTable customers={customers} />
+      {/* Pass the fetched customers to CustomerTable */}
+      <CustomerTable customers={customers || []} onDelete={deleteCustomer.mutate} />
     </div>
   );
 }

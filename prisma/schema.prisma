@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Customer {
+  id          String    @id @default(uuid())
+  fullName    String
+  phoneNumber String    @unique // Nomor telepon seringkali unik untuk setiap pelanggan
+  email       String?   @unique // Email bisa unik atau opsional
+  address     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  orders      Order[]
+}
+
+model ServiceType {
+  id               String   @id @default(uuid())
+  name             String
+  pricingModel     PricingModel
+  price            Int // in Rupiah
+  estimatedDuration Int   // in hours
+  orders           Order[]
+}
+
+enum PricingModel {
+  RUPIAH_PER_KG
+  RUPIAH_PER_ITEM
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  customer      Customer    @relation(fields: [customerId], references: [id])
+  customerId    String
+  serviceType   ServiceType @relation(fields: [serviceTypeId], references: [id])
+  serviceTypeId String
+  items         String?     // description of items
+  weight        Float?      // in kg
+  quantity      Int?        // in items
+  perfume       String?     // perfume selection (optional)
+  orderDate     DateTime    @default(now())
+  dueDate       DateTime
+  paymentStatus PaymentStatus @default(PENDING)
+  status        OrderStatus   @default(DITERIMA)
+  receiptNumber String?     // for receipt/nota
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+enum OrderStatus {
+  DITERIMA
+  DICUCI
+  SIAP_DIAAMBIL
+  SELESAI
+  DIBATALKAN
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+model Report {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+}

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from 'react';
@@ -15,7 +14,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import type { ServiceType, PricingModel } from '@/types';
 import { sampleServiceTypes } from '@/lib/data';
-import { PlusCircle, ArrowLeft, Loader2, ClipboardList, DollarSign, PackageIcon } from 'lucide-react';
+import { PlusCircle, ArrowLeft, Loader2, ClipboardList, DollarSign, PackageIcon, Weight } from 'lucide-react';
 
 const serviceTypeFormSchema = z.object({
   name: z.string().min(2, { message: "Service type name must be at least 2 characters." }),
@@ -48,6 +47,7 @@ export default function AddServiceTypePage() {
       name: data.name,
       pricingModel: data.pricingModel as PricingModel,
       price: data.price,
+      estimatedDuration: 0, // You can set a default or collect this from the form
     };
 
     sampleServiceTypes.unshift(newServiceType);

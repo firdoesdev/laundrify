@@ -1,0 +1,87 @@
+---
+applyTo: '**/*.ts'
+---
+
+# Project Structure
+This project is structured to follow best practices for maintainability and scalability. Below is an overview of the key directories and their purposes:
+## Directories
+- **src/**: Contains the main source code of the application.
+  - **components/**: Reusable UI components.
+  - **hooks/**: Custom React hooks for shared logic.
+  - **pages/**: Page components that represent different routes in the application.
+  - **services/**: API service functions for data fetching and manipulation.
+  - **styles/**: Global styles and theme configurations.
+  - **utils/**: Utility functions and helpers.
+  - **context/**: React context providers for state management.
+  - **assets/**: Static assets like images and fonts.
+  - **api/**: API client setup and configurations.
+  - **app/**: Main application entry point and routing setup.
+    - **(app)/**: auth routes and components.
+- **prisma/**: Database schema and migrations for Prisma ORM.
+- **tests/**: Contains unit and integration tests for the application.
+- **public/**: Static assets like images and fonts.
+- **config/**: Configuration files for the application, such as environment variables and build settings.
+- **scripts/**: Custom scripts for build, deployment, and other tasks.
+- **types/**: TypeScript type definitions and interfaces.
+- **docs/**: Documentation files, including this project structure guide.
+- **.github/**: GitHub-specific files, including workflows and issue templates.
+
+
+## Naming Conventions
+- Use **camelCase** for variables and functions.
+- Use **PascalCase** for React components and classes.
+- Use **kebab-case** for file and directory names.
+- Use **UPPER_SNAKE_CASE** for constants.
+
+## File Structure
+- Each component should have its own directory under `src/components/` with an `index.tsx` file for exports.
+- Hooks should be placed in `src/hooks/` with descriptive names.
+- Services should be organized by feature in `src/services/`, with each service having its own file.
+- Styles should be modular, with each component having its own style file if necessary, located in `src/styles/`.
+- Utility functions should be grouped logically in `src/utils/`, with each function in its own file if complex.
+- Tests should mirror the structure of the `src/` directory, with test files named `*.test.tsx` or `*.test.ts`.
+
+## Best Practices
+- Keep components small and focused on a single responsibility.
+- Use hooks for shared logic to avoid duplication.
+- Write tests for all components, hooks, and services to ensure reliability.
+- Use TypeScript interfaces and types to ensure type safety across the application.
+- Document complex logic and components in the codebase to aid understanding and maintenance.
+- Regularly refactor code to improve readability and maintainability.
+- Use version control effectively, with clear commit messages and branching strategies.
+- Follow the DRY (Don't Repeat Yourself) principle to reduce code duplication.
+- Use ESLint and Prettier for consistent code style and formatting.
+- Ensure accessibility standards are met in UI components.
+- Optimize performance by lazy loading components and using memoization where appropriate.
+- Keep dependencies up to date and remove unused packages regularly.
+- Use environment variables for configuration settings that may change between environments (development, staging, production).
+- Maintain a clear separation of concerns between different parts of the application.
+- Use descriptive names for variables, functions, and components to enhance code readability.
+- Regularly review and update documentation to reflect changes in the codebase.
+- Use GitHub issues and pull requests to manage tasks and code reviews effectively.
+- Ensure that all code changes are reviewed by at least one other developer before merging.
+- Use semantic versioning for releases to track changes and compatibility.
+- Implement error handling and logging to capture issues in production.
+- Use feature flags for new features to allow gradual rollout and testing in production.
+- Regularly back up important data and configurations to prevent loss.
+- Monitor application performance and user feedback to identify areas for improvement.
+- Use a consistent branching strategy (e.g., Git Flow) to manage development and releases.
+- Keep the project dependencies organized and documented in a `package.json` file.
+- Use a linter to enforce coding standards and catch potential errors early.
+- Use a formatter to maintain consistent code style across the project.
+- Regularly review and update dependencies to ensure security and performance.
+- Use a task runner or build tool (like Webpack or Vite) to automate development tasks and optimize the build process.
+- Implement continuous integration and deployment (CI/CD) to automate testing and deployment processes.
+- Use a code coverage tool to ensure that tests cover a significant portion of the codebase.
+- Maintain a changelog to document changes made in each version of the application.
+- Use a README file to provide an overview of the project, setup instructions, and usage guidelines.
+- Use issue templates and pull request templates to standardize contributions and reviews.
+- Regularly conduct code reviews to ensure code quality and share knowledge among team members.
+- Encourage pair programming and collaborative coding sessions to improve code quality and team cohesion.
+- Use a project management tool (like Jira or Trello) to track tasks, bugs, and feature requests.
+- Regularly hold team meetings to discuss progress, challenges, and upcoming tasks.
+- Foster a culture of open communication and feedback within the team to continuously improve the development process.
+- Use a consistent commit message format to make it easier to understand the history of changes.
+- Document any architectural decisions or patterns used in the project to provide context for future developers.
+- Use a consistent approach for handling errors and exceptions throughout the application.
+- Implement logging and monitoring to track application performance and user behavior.
